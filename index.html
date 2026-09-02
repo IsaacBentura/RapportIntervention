@@ -271,7 +271,9 @@ dialog h3{margin-bottom:12px}
 
     <div class="sect">Synchronisation Google Drive (équipe)</div>
     <p class="hint" style="margin-top:0">Les rapports, clients et réglages sont partagés via le dossier « Rapports d'intervention » du Drive du compte connecté. Les PDF générés y sont aussi déposés (sous-dossier PDF).</p>
-    <div class="field"><label>Identifiant client Google (OAuth)</label><input id="s_gcid" placeholder="882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com"></div>
+    <details class="help" style="background:#fff;border:1px solid var(--line)"><summary>Réglages avancés (ne pas modifier)</summary>
+    <div class="field" style="margin-top:10px"><label>Identifiant client Google (OAuth)</label><input id="s_gcid" placeholder="xxxxx.apps.googleusercontent.com" oninput="settings.gClientId=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
+    </details>
     <p class="hint" id="gStatus"></p>
     <div class="rg">
       <button class="btn" id="btnGConnect" onclick="sync.connect()">Se connecter à Google</button>
@@ -744,8 +746,8 @@ if(CAP){
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
-const GOOGLE_CLIENT_ID='__GOOGLE_CLIENT_ID__'; // à remplacer par l'identifiant OAuth (type Application Web)
-const DEF_SETTINGS={gClientId:'',updatedAt:0,name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE',title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72};
+const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com'; // à remplacer par l'identifiant OAuth (type Application Web)
+const DEF_SETTINGS={gClientId:GOOGLE_CLIENT_ID,updatedAt:0,name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE',title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72};
 let settings=Object.assign({},DEF_SETTINGS);
 let reports=[],clients=[],cur=null,dirty=false;
 
@@ -1018,7 +1020,7 @@ async function importData(file){
 
 /* ================= démarrage ================= */
 (async()=>{
-  try{await store.init();reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings())}
+  try{await store.init();reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings());if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID}
   catch(e){alert("Stockage local indisponible. Les rapports ne pourront pas être conservés.\n\n"+e)}
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
@@ -1047,7 +1049,7 @@ const sync={
     document.getElementById('btnSync').classList.toggle('spin',cls==='busy');bar.querySelector('button').textContent=cls==='err'&&this.configured()?'Réessayer':'Réglages';
     bar.querySelector('button').onclick=cls==='err'&&this.configured()?()=>this.full(true):()=>go('settings')},
   renderSettings(){const st=document.getElementById('gStatus');if(!st)return;
-    st.textContent=!this.configured()?"Identifiant client manquant : créez-le sur console.cloud.google.com (voir README) puis collez-le ci-dessus et enregistrez.":this.connected()?"Connecté. Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
+    st.textContent=!this.configured()?"Identifiant client Google invalide : ouvrez « Réglages avancés » et collez l'identifiant fourni par l'administrateur.":this.connected()?"Connecté. Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
     document.getElementById('btnGConnect').disabled=!this.configured();document.getElementById('btnGDisc').classList.toggle('hidden',!this.connected())},
 
   /* --- authentification (Google Identity Services, jeton 1 h) --- */
@@ -1065,7 +1067,7 @@ const sync={
       tc.requestAccessToken({prompt:interactive?'select_account':''});
     });
   },
-  async connect(){const tok=await this.getToken(true);if(!tok){toast('Connexion Google impossible');return}toast('Connecté à Google');this.renderSettings();this.full(true)},
+  async connect(){const f=document.getElementById('s_gcid');if(f&&f.value.trim()){settings.gClientId=f.value.trim();await store.saveSettings(settings)}const tok=await this.getToken(true);if(!tok){toast('Connexion Google impossible');return}toast('Connecté à Google');this.renderSettings();this.full(true)},
   disconnect(){if(this.token&&window.google)try{google.accounts.oauth2.revoke(this.token,()=>{})}catch(e){}
     this.token=null;this.exp=0;this.folderId=null;['gtok','gconnected'].forEach(k=>localStorage.removeItem(k));this.renderSettings();this.setStatus('Non connecté à Google');toast('Déconnecté')},
 
