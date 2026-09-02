@@ -1,47 +1,30 @@
-# Rapports d'intervention – PWA synchronisée Google Drive
+# Rapports d'intervention – deux sociétés
 
-Contenu du dossier à publier tel quel sur GitHub Pages :
-`index.html` (l'application), `manifest.json`, `sw.js` (hors-ligne), `icon-192.png`, `icon-512.png`.
+Structure à déposer à la racine du dépôt GitHub (remplace les anciens fichiers) :
 
-## 1. Publier sur GitHub Pages
-1. Créer un dépôt (par ex. `rapports-intervention`), y déposer ces fichiers à la racine.
-2. Settings ▸ Pages ▸ Source : branche `main`, dossier `/ (root)`.
-3. Noter l'URL obtenue : `https://<compte>.github.io/rapports-intervention/`
+    index.html            page d'accueil : choix de la société
+    ventura/              application Ventura      (index.html, manifest.json, sw.js, icônes)
+    kidebouchetou/        application Kidebouchetou.com (idem)
 
-## 2. Créer l'identifiant client Google (10 minutes, gratuit)
-Avec le **compte Google partagé de l'équipe** (celui dont le Drive contiendra les rapports) :
+Chaque dossier est une application installable distincte : icône et couleur propres,
+base locale propre, dossier Drive propre :
+- Ventura → « Rapports d'intervention » (dossier existant, rien ne bouge)
+- Kidebouchetou.com → « Rapports d'intervention – Kidebouchetou.com »
 
-1. Ouvrir https://console.cloud.google.com et créer un projet (« Rapports intervention »).
-2. **API et services ▸ Bibliothèque** : rechercher *Google Drive API* ▸ Activer.
-3. **API et services ▸ Écran de consentement OAuth** (ou « Google Auth Platform ») :
-   - Type d'utilisateur : *Externe* ; nom de l'application ; e-mail d'assistance.
-   - Champs d'application : ajouter `.../auth/drive.file` (accès uniquement aux fichiers créés par l'application).
-   - **Utilisateurs test** : ajouter l'adresse du compte partagé. (Tant que l'application est en mode « Test », seuls ces comptes peuvent se connecter — suffisant ici, pas besoin de validation Google.)
-4. **API et services ▸ Identifiants ▸ Créer des identifiants ▸ ID client OAuth** :
-   - Type : *Application Web*.
-   - **Origines JavaScript autorisées** : `https://<compte>.github.io` (sans chemin, sans barre finale).
-   - Pas d'URI de redirection nécessaire.
-5. Copier l'**ID client** (`xxxx.apps.googleusercontent.com`).
+Le compte Google (evadsarl26) est partagé : se connecter dans l'une des deux applis
+connecte aussi l'autre. L'ID client OAuth est le même, aucune modification côté Google.
 
-## 3. Renseigner l'identifiant client
-Deux possibilités :
-- dans `index.html`, remplacer `__GOOGLE_CLIENT_ID__` par l'ID client (une seule occurrence) et republier ;
-- ou, sur chaque appareil, le coller dans *Réglages ▸ Identifiant client Google* et enregistrer.
+Sur le téléphone du plombier :
+1. Ouvrir https://isaacbentura.github.io/RapportIntervention/ventura/ ▸ ⋮ ▸ « Ajouter à l'écran d'accueil »
+2. Ouvrir https://isaacbentura.github.io/RapportIntervention/kidebouchetou/ ▸ idem
+3. Dans l'une des deux : Réglages ▸ « Se connecter à Google »
+4. Dans Kidebouchetou.com : Réglages ▸ compléter l'en-tête (adresse, téléphone, mail, RCS) et le logo.
 
-## 4. Sur chaque téléphone
-1. Ouvrir l'URL dans Chrome ▸ menu ⋮ ▸ *Ajouter à l'écran d'accueil* (icône et plein écran).
-2. Réglages ▸ *Se connecter à Google* ▸ choisir le compte partagé de l'équipe.
-3. L'application crée le dossier « Rapports d'intervention » dans le Drive et synchronise.
+Photos HEIC (iPhone) : converties à l'import grâce à heic2any.min.js (1,3 Mo), présent dans chaque dossier et chargé seulement au premier besoin.
 
-## Fonctionnement
-- Un fichier JSON par rapport (photos incluses), `clients.json`, `settings.json` (en-tête société partagé).
-- Les PDF générés sont déposés dans le sous-dossier « PDF » du Drive.
-- Synchronisation au démarrage, 1,5 s après chaque enregistrement, au retour du réseau, et via le bouton ↻.
-- Conflit : la modification la plus récente gagne. Une suppression sur un appareil est répercutée partout.
-- Hors ligne : tout reste utilisable ; l'envoi se fait au retour du réseau.
-- Le jeton Google dure 1 h ; il est renouvelé silencieusement. Si Google demande de se reconnecter, la barre d'état le signale (« Reconnexion à Google nécessaire »).
+Mise à jour : le même index.html est copié dans ventura/ et kidebouchetou/.
+Ajouter une troisième société : dupliquer un dossier, ajouter une entrée dans COMPANIES en tête du script.
 
-## Sécurité
-- L'ID client est public par nature ; il est protégé par la liste des origines autorisées.
-- L'application n'accède qu'aux fichiers qu'elle a créés (portée `drive.file`).
-- Les rapports sont visibles de quiconque possède le mot de passe du compte partagé : activer la validation en deux étapes sur ce compte.
+Note : les anciens raccourcis pointant sur la racine (…/RapportIntervention/index.html)
+doivent être supprimés ; l'ancien fichier index.html à la racine est remplacé par la page d'accueil.
+Les rapports Ventura déjà saisis sont récupérés depuis le Drive à la première synchronisation.
