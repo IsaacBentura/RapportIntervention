@@ -132,6 +132,10 @@ details.help li{margin:3px 0}
 .syncbar.busy #syncTxt::after{content:"…"}
 #btnSync.spin{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.logoRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logoPv{max-height:56px;max-width:160px;border:1px solid var(--line);border-radius:6px;padding:4px;background:#fff}
+.pv .hdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pv .hdrow img{max-height:48px;max-width:140px;object-fit:contain}
 /* ---- misc ---- */
 .toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
@@ -253,6 +257,14 @@ dialog h3{margin-bottom:12px}
   </header>
   <div class="view">
     <div class="sect">En-tête des rapports</div>
+    <div class="field"><label>Logo de la société</label>
+      <div class="logoRow">
+        <img id="s_logoImg" class="logoPv hidden" alt="">
+        <label class="btn sec" style="cursor:pointer">Choisir une image<input type="file" accept="image/*" class="hidden" onchange="setLogo(this.files[0]);this.value=''"></label>
+        <button class="btn danger hidden" id="s_logoDel" onclick="setLogo(null)">Retirer</button>
+      </div>
+      <p class="hint" style="margin:6px 0 0">PNG ou JPEG ; il est affiché en haut à gauche du rapport, face aux coordonnées.</p>
+    </div>
     <div class="field"><label>Nom de la société</label><input id="s_name"></div>
     <div class="field"><label>Adresse</label><input id="s_addr"></div>
     <div class="row">
@@ -747,7 +759,7 @@ if(CAP){
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com'; // à remplacer par l'identifiant OAuth (type Application Web)
-const DEF_SETTINGS={gClientId:GOOGLE_CLIENT_ID,updatedAt:0,name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE',title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72};
+const DEF_SETTINGS={gClientId:GOOGLE_CLIENT_ID,logo:'',logoW:0,logoH:0,updatedAt:0,name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE',title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72};
 let settings=Object.assign({},DEF_SETTINGS);
 let reports=[],clients=[],cur=null,dirty=false;
 
@@ -884,7 +896,7 @@ function setMode(m){
 function preview(){
   readEditor();save(true);
   const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
-  let h=`<div class="hd"><b>${esc(S.name)}</b><br>${esc(S.addr)}<br>${esc(S.tel)}<br>${esc(S.mail)}<br>${esc(S.rcs)}</div>
+  let h=`<div class="hdrow">${S.logo?`<img src="${S.logo}" alt="">`:'<span></span>'}<div class="hd"><b>${esc(S.name)}</b><br>${esc(S.addr)}<br>${esc(S.tel)}<br>${esc(S.mail)}<br>${esc(S.rcs)}</div></div>
   <div class="t">${esc(S.title)}</div><p>Date d'intervention : ${esc(fmtDate(r.date))}${r.num?' &nbsp;·&nbsp; N° '+esc(r.num):''}</p>
   <div class="pk">Détails de l'intervention</div><table class="meta">
   ${cl?`<tr><td>Client</td><td>${esc(cl.name)}${cl.contact?'<br>'+esc(cl.contact):''}</td></tr>`:''}
@@ -914,8 +926,11 @@ async function exportPdf(){
     const x=opts.x??ML,w=opts.w??CW;const ls=doc.splitTextToSize(txt(s),w);const lh=size*0.3527*(opts.lh||1.4);
     for(const l of ls){need(lh);doc.text(l,opts.align==='right'?x+w:x,y+lh*0.75,{align:opts.align||'left'});y+=lh}};
   // en-tête
-  const hx=ML,hw=CW;
-  line(S.name,10,'bold',[34,34,34],{align:'right'});[S.addr,S.tel,S.mail,S.rcs].filter(Boolean).forEach(t=>line(t,9,'normal',GREY,{align:'right',lh:1.3}));
+  const y0=y;
+  if(S.logo&&S.logoW&&S.logoH){const maxW=45,maxH=22;const s=Math.min(maxW/S.logoW,maxH/S.logoH);
+    try{doc.addImage(S.logo,S.logo.startsWith('data:image/png')?'PNG':'JPEG',ML,y0,S.logoW*s,S.logoH*s,undefined,'FAST')}catch(e){}}
+  line(S.name,10,'bold',[34,34,34],{align:'right',x:ML+50,w:CW-50});[S.addr,S.tel,S.mail,S.rcs].filter(Boolean).forEach(t=>line(t,9,'normal',GREY,{align:'right',lh:1.3,x:ML+50,w:CW-50}));
+  if(S.logo&&S.logoW&&S.logoH){const s=Math.min(45/S.logoW,22/S.logoH);y=Math.max(y,y0+S.logoH*s+2)}
   y+=6;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(...BLUE);doc.text(txt(S.title),W/2,y+6,{align:'center'});y+=14;
   line(`Date d'intervention : ${fmtDate(r.date)}${r.num?'   ·   N° '+r.num:''}`,9.5,'normal',GREY);
   y+=3;line("Détails de l'intervention",12,'bold',PINK);y+=2;
@@ -1000,8 +1015,17 @@ async function saveClient(){
 async function deleteClient(id){if(!confirm('Supprimer ce client ? Les rapports existants sont conservés.'))return;await store.delClient(id);clients=clients.filter(c=>c.id!==id);sync.markDeleted('c',id);sync.schedule();renderClients()}
 
 /* ================= réglages ================= */
-function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=settings.gClientId||'';sync.renderSettings()}
-function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.trim(),tel:s_tel.value.trim(),mail:s_mail.value.trim(),rcs:s_rcs.value.trim(),title:s_title.value.trim()||"RAPPORT D'INTERVENTION",footer:s_footer.value.trim(),px:+s_px.value,q:+s_q.value,gClientId:s_gcid.value.trim(),updatedAt:Date.now()};
+function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=settings.gClientId||'';renderLogo();sync.renderSettings()}
+function renderLogo(){const im=document.getElementById('s_logoImg');im.classList.toggle('hidden',!settings.logo);document.getElementById('s_logoDel').classList.toggle('hidden',!settings.logo);if(settings.logo)im.src=settings.logo}
+async function setLogo(file){
+  if(!file){settings.logo='';settings.logoW=settings.logoH=0}
+  else{const url=URL.createObjectURL(file);const img=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=url});
+    const max=600;const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*s),h=Math.round(img.naturalHeight*s);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);
+    const png=c.toDataURL('image/png');const jpg=c.toDataURL('image/jpeg',0.85);
+    settings.logo=(file.type==='image/png'||file.type==='image/svg+xml'||file.type==='image/webp')&&png.length<400000?png:jpg;settings.logoW=w;settings.logoH=h}
+  settings.updatedAt=Date.now();await store.saveSettings(settings);renderLogo();sync.schedule();toast(file?'Logo enregistré':'Logo retiré')}
+function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.trim(),tel:s_tel.value.trim(),mail:s_mail.value.trim(),rcs:s_rcs.value.trim(),title:s_title.value.trim()||"RAPPORT D'INTERVENTION",footer:s_footer.value.trim(),px:+s_px.value,q:+s_q.value,gClientId:s_gcid.value.trim(),logo:settings.logo,logoW:settings.logoW,logoH:settings.logoH,updatedAt:Date.now()};
   store.saveSettings(settings);sync.schedule();toast('Réglages enregistrés');go('list')}
 
 /* ================= sauvegarde / restauration ================= */
