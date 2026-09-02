@@ -222,7 +222,7 @@ dialog h3{margin-bottom:12px}
         <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this.files);this.value=''">
       </label>
       <label class="addph">🖼 Galerie <span id="phcount"></span>
-        <input type="file" accept="image/*,.heic,.heif" multiple onchange="addPhotos(this.files);this.value=''">
+        <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''">
       </label>
     </div>
   </div>
@@ -729,7 +729,7 @@ const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:"Rapports d'intervention – Kidebouchetou.com",
-    defaults:{name:'Kidebouchetou.com',addr:'',tel:'',mail:'',rcs:''}},
+    defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
 };
 const COMPANY_KEY=(()=>{const q=new URLSearchParams(location.search).get('societe');if(q&&COMPANIES[q])return q;
   const seg=location.pathname.split('/').filter(Boolean).map(s=>s.toLowerCase());for(const s of seg.reverse())if(COMPANIES[s])return s;return 'ventura'})();
