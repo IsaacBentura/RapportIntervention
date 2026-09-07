@@ -137,6 +137,15 @@ details.help li{margin:3px 0}
 .logoPv{max-height:56px;max-width:160px;border:1px solid var(--line);border-radius:6px;padding:4px;background:#fff}
 .pv .hdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .pv .hdrow img{max-height:48px;max-width:140px;object-fit:contain}
+.vid .prog{position:absolute;left:0;right:0;bottom:38px;height:5px;background:rgba(255,255,255,.6)}
+.vid .prog i{display:block;height:100%;background:var(--blue)}
+.vid .st{position:absolute;bottom:46px;left:6px;font-size:11px;background:rgba(255,255,255,.9);padding:1px 6px;border-radius:4px;color:var(--ink2)}
+.vid .st.err{color:var(--warn)}
+.vid .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:44px;height:44px;border-radius:50%;background:rgba(27,39,51,.7);pointer-events:none}
+.vid .play::after{content:"";position:absolute;left:17px;top:12px;border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent}
+.pv .vg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.pv .vg img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#222}
+.pv .vg a{font-size:11px;word-break:break-all;color:#3a7fc4}
 /* ---- misc ---- */
 .toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
@@ -225,6 +234,18 @@ dialog h3{margin-bottom:12px}
         <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''" id="galleryInput">
       </label>
     </div>
+
+    <div class="sect">Vidéos (envoyées sur le Drive, lien cliquable dans le PDF)</div>
+    <div class="photos" id="videos"></div>
+    <div class="row">
+      <label class="addph">🎥 Filmer
+        <input type="file" accept="video/*" capture="environment" onchange="addVideos(this.files);this.value=''">
+      </label>
+      <label class="addph">🎞 Galerie vidéo
+        <input type="file" accept="video/*" multiple onchange="addVideos(this.files);this.value=''">
+      </label>
+    </div>
+    <p class="hint" style="margin-top:8px">Conseil : filmer en 1080p (pas en 4K), environ 60 Mo par minute. L'envoi se fait dès que le réseau est disponible.</p>
   </div>
   <div class="actions"><div class="in">
     <button class="btn sec" onclick="preview()">Aperçu</button>
@@ -726,7 +747,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.5 – 07/09/2026';
+const APP_VERSION='1.6 – 07/09/2026';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -815,15 +836,15 @@ function clientName(id){const c=clients.find(c=>c.id===id);return c?c.name:''}
 /* ================= éditeur ================= */
 function newReport(){
   const today=new Date();const iso=today.toISOString().slice(0,10);
-  cur={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:iso,num:nextNum(today),clientId:'',addr:'',obj:'',text:'',photos:[]};
+  cur={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:iso,num:nextNum(today),clientId:'',addr:'',obj:'',text:'',photos:[],videos:[]};
   fillEditor();go('edit');
 }
 function nextNum(d){const y=d.getFullYear();const n=reports.filter(r=>(r.num||'').startsWith(y+'-')).length+1;return `${y}-${String(n).padStart(3,'0')}`}
-function openReport(id){cur=JSON.parse(JSON.stringify(reports.find(r=>r.id===id)));fillEditor();go('edit')}
+function openReport(id){cur=JSON.parse(JSON.stringify(reports.find(r=>r.id===id)));cur.videos=cur.videos||[];fillEditor();go('edit')}
 function fillEditor(){
   document.getElementById('editTitle').textContent=cur.addr?cur.addr:'Nouveau rapport';
   f_date.value=cur.date||'';f_num.value=cur.num||'';f_addr.value=cur.addr||'';f_obj.value=cur.obj||'';f_text.value=cur.text||'';
-  fillClientSelect();f_client.value=cur.clientId||'';renderPhotos();setMode('txt');dirty=false;
+  fillClientSelect();f_client.value=cur.clientId||'';renderPhotos();renderVideos();setMode('txt');dirty=false;
 }
 function fillClientSelect(){f_client.innerHTML='<option value="">— Aucun —</option>'+clients.sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'<option value="__new">＋ Nouveau client…</option>'}
 function clientPicked(){if(f_client.value==='__new'){f_client.value=cur.clientId||'';editClient(null,true);return}
@@ -833,7 +854,7 @@ function mark(){dirty=true}
 ['f_date','f_num','f_addr','f_obj','f_text'].forEach(id=>document.getElementById(id).addEventListener('input',mark));
 async function save(silent){
   readEditor();
-  if(!cur.addr&&!cur.text&&!cur.photos.length)return false;
+  if(!cur.addr&&!cur.text&&!cur.photos.length&&!(cur.videos||[]).length)return false;
   cur.updatedAt=Date.now();await store.putReport(cur);sync.schedule();
   const i=reports.findIndex(r=>r.id===cur.id);if(i>=0)reports[i]=cur;else reports.push(cur);
   dirty=false;if(!silent)toast('Rapport enregistré');return true;
@@ -920,6 +941,82 @@ function parse(text){
   flush();return out;
 }
 
+
+/* =========================================================
+   Vidéos : fichier stocké temporairement en IndexedDB, envoyé sur le
+   Drive (dossier Vidéos) par envoi reprenable, rendu public par lien.
+   Le rapport ne conserve que vignette, durée, identifiant et lien.
+   ========================================================= */
+const vdb={db:null,
+  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('rapports-videos-'+COMPANY_KEY,1);
+    r.onupgradeneeded=e=>e.target.result.createObjectStore('blobs');r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async put(id,blob){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').put(blob,id);t.oncomplete=res;t.onerror=e=>rej(e.target.error)})},
+  async get(id){const d=await this.open();return new Promise((res,rej)=>{const r=d.transaction('blobs').objectStore('blobs').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})},
+  async del(id){const d=await this.open();return new Promise(res=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').delete(id);t.oncomplete=res;t.onerror=res})}
+};
+const fmtSize=b=>b>1e9?(b/1e9).toFixed(2)+' Go':b>1e6?Math.round(b/1e6)+' Mo':Math.round(b/1e3)+' Ko';
+const fmtDur=s=>s?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'';
+function videoThumb(file){return new Promise(res=>{
+  const url=URL.createObjectURL(file);const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';v.src=url;
+  let finished=false;const done=(thumb,dur,tw,th)=>{if(finished)return;finished=true;URL.revokeObjectURL(url);res({thumb,dur,tw:tw||0,th:th||0})};
+  const timer=setTimeout(()=>done('',v.duration||0),8000);
+  v.onloadedmetadata=()=>{v.currentTime=Math.min(1,(v.duration||2)/2)};
+  v.onseeked=()=>{try{const s=Math.min(1,480/(v.videoWidth||480));const c=document.createElement('canvas');c.width=Math.round((v.videoWidth||480)*s);c.height=Math.round((v.videoHeight||270)*s);
+    c.getContext('2d').drawImage(v,0,0,c.width,c.height);clearTimeout(timer);done(c.toDataURL('image/jpeg',0.7),v.duration||0,c.width,c.height)}catch(e){clearTimeout(timer);done('',v.duration||0)}};
+  v.onerror=()=>{clearTimeout(timer);done('',0)};
+})}
+async function addVideos(files){
+  const arr=[...files];if(!arr.length)return;cur.videos=cur.videos||[];
+  for(const f of arr){
+    if(f.size>1.5e9){toast('Vidéo trop volumineuse (> 1,5 Go) : '+f.name);continue}
+    toast('Préparation de la vidéo…');
+    const {thumb,dur,tw,th}=await videoThumb(f);
+    const v={id:uid(),name:f.name||('video-'+Date.now()+'.mp4'),mime:f.type||'video/mp4',size:f.size,dur,thumb,tw,th,cap:'',driveId:'',link:'',status:'pending'};
+    await vdb.put(v.id,f);cur.videos.push(v);
+  }
+  renderVideos();mark();await save(true);videoUploader.run();
+}
+function renderVideos(){
+  const el=document.getElementById('videos');const vs=cur.videos||[];
+  el.innerHTML=vs.map((v,i)=>{const p=videoUploader.progress[v.id];
+    const st=v.status==='done'?'Sur le Drive':v.status==='uploading'?`Envoi ${Math.round((p||0)*100)} %`:v.status==='error'?'Échec – réessai auto':'En attente de réseau';
+    return `<div class="ph vid">
+    ${v.thumb?`<img src="${v.thumb}" alt="">`:'<div style="aspect-ratio:4/3;background:#333"></div>'}<div class="play"></div>
+    <span class="st ${v.status==='error'?'err':''}">${st} · ${fmtSize(v.size)}${v.dur?' · '+fmtDur(v.dur):''}</span>
+    ${v.status==='uploading'?`<div class="prog"><i style="width:${Math.round((p||0)*100)}%"></i></div>`:''}
+    <button class="x" onclick="removeVideo(${i})" aria-label="Retirer">×</button>
+    <input placeholder="Légende…" value="${esc(v.cap)}" oninput="cur.videos[${i}].cap=this.value;mark()"></div>`}).join('');
+}
+async function removeVideo(i){const v=cur.videos[i];if(!confirm('Retirer cette vidéo du rapport'+(v.driveId?' et du Drive':'')+' ?'))return;
+  cur.videos.splice(i,1);await vdb.del(v.id);if(v.driveId)sync.remove(v.driveId).catch(()=>{});renderVideos();mark();await save(true)}
+
+const videoUploader={progress:{},running:false,
+  async run(){
+    if(this.running||!navigator.onLine||!sync.configured()||!sync.connected())return;this.running=true;
+    try{
+      const list=reports.slice();if(cur&&!list.some(x=>x.id===cur.id))list.push(cur);
+      for(const r of list){
+        for(const v of (r.videos||[])){
+          if(v.status==='done'||!v.id)continue;
+          const blob=await vdb.get(v.id);if(!blob){if(!v.link)v.status='error';continue}
+          try{
+            v.status='uploading';this.progress[v.id]=0;if(cur&&cur.id===r.id)renderVideos();
+            await sync.ensureFolders();
+            const id=await sync.uploadResumable(v.name,blob,v.mime,sync.videoFolderId,p=>{this.progress[v.id]=p;if(cur&&cur.id===r.id)renderVideos()});
+            await sync.api(`drive/v3/files/${id}/permissions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'anyone',role:'reader'})});
+            v.driveId=id;v.link=`https://drive.google.com/file/d/${id}/view`;v.status='done';await vdb.del(v.id);
+            r.updatedAt=Date.now();await store.putReport(r);
+            if(cur&&cur.id===r.id&&cur!==r){const cv=cur.videos.find(x=>x.id===v.id);if(cv)Object.assign(cv,v)}
+            sync.schedule();
+          }catch(e){console.warn('upload vidéo',e);v.status='error';if(e.message==='noauth')break}
+          if(cur&&cur.id===r.id)renderVideos();
+        }
+      }
+    }finally{this.running=false}
+  }
+};
+window.addEventListener('online',()=>videoUploader.run());
+
 /* ================= rendu HTML du corps ================= */
 function renderBody(text){let h='';
   for(const b of parse(text)){
@@ -947,6 +1044,8 @@ function preview(){
   ${r.obj?`<tr><td>Objet</td><td>${esc(r.obj)}</td></tr>`:''}</table>`;
   h+=renderBody(r.text);
   if(r.photos.length)h+=`<div class="pk">Photos de l'intervention</div><div class="pg">`+r.photos.map(p=>`<figure><img src="${p.data}">${p.cap?`<figcaption>${esc(p.cap)}</figcaption>`:''}</figure>`).join('')+'</div>';
+  const vids=(r.videos||[]);
+  if(vids.length)h+=`<div class="pk">Vidéos de l'intervention</div><div class="vg">`+vids.map(v=>`<figure>${v.thumb?`<img src="${v.thumb}">`:'<div style="aspect-ratio:16/10;background:#222"></div>'}<figcaption>${v.cap?esc(v.cap)+'<br>':''}${v.link?`<a href="${v.link}" target="_blank">${v.link}</a>`:'<i>Lien disponible après envoi sur le Drive</i>'}${v.dur?' · '+fmtDur(v.dur):''}</figcaption></figure>`).join('')+'</div>';
   document.getElementById('pv').innerHTML=h;go('preview');
 }
 
@@ -957,6 +1056,8 @@ function preview(){
 function txt(s){return String(s??'').replace(/[\u2018\u2019\u201A]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"').replace(/\u2026/g,'...').replace(/[\u2212]/g,'-').replace(/\u00A0/g,' ').replace(/[✓✔]/g,'').replace(/[^\u0000-\u00FF\u0152\u0153\u2013\u2014\u20AC\u2022]/g,'')}
 async function exportPdf(){
   readEditor();await save(true);
+  const waiting=(cur.videos||[]).filter(v=>v.status!=='done');
+  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur le Drive : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
   const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
   const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
   const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;
@@ -1014,6 +1115,26 @@ async function exportPdf(){
         doc.addImage(p.data,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST');
         if(p.cap){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt(p.cap),cw),x+cw/2,y+ch+4,{align:'center'})}});
       y+=ch+capH+8;
+    }
+  }
+  // vidéos : vignette cliquable + lien
+  const vids=(r.videos||[]);
+  if(vids.length){
+    const gap=8,cw=(CW-gap)/2,ch=52;
+    if(y+70>H-BOT){doc.addPage();y=TOP}else y+=4;
+    line("Vidéos de l'intervention",12,'bold',PINK);y+=3;
+    for(let i=0;i<vids.length;i+=2){
+      const pair=vids.slice(i,i+2);need(ch+22);
+      pair.forEach((v,j)=>{const x=ML+j*(cw+gap);
+        doc.setFillColor(40,40,40);doc.rect(x,y,cw,ch,'F');
+        if(v.thumb){try{const s=(v.tw&&v.th)?Math.min(cw/v.tw,ch/v.th):0;const w=s?v.tw*s:cw,h=s?v.th*s:ch;doc.addImage(v.thumb,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST')}catch(e){}}
+        const cx=x+cw/2,cy=y+ch/2;doc.setFillColor(27,39,51);doc.setDrawColor(255,255,255);doc.setLineWidth(.6);doc.circle(cx,cy,6,'FD');doc.setFillColor(255,255,255);doc.triangle(cx-2,cy-3.4,cx-2,cy+3.4,cx+3.6,cy,'F');
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);let ty=y+ch+4;
+        if(v.cap){const cl=doc.splitTextToSize(txt(v.cap),cw);doc.text(cl,x,ty);ty+=cl.length*3.8}
+        if(v.link){doc.setTextColor(...BLUE);doc.setFontSize(7.5);const ll=doc.splitTextToSize(v.link,cw);doc.text(ll,x,ty);doc.link(x,y,cw,ch,{url:v.link});doc.link(x,ty-3,cw,ll.length*3.4,{url:v.link})}
+        else{doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text("Vidéo en cours d'envoi sur le Drive : lien non disponible",x,ty)}
+        if(v.dur){doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text('Durée '+fmtDur(v.dur)+' · '+fmtSize(v.size),x+cw,y+ch+4,{align:'right'})}});
+      y+=ch+22;
     }
   }
   footer();
@@ -1091,7 +1212,7 @@ async function importData(file){
   catch(e){alert("Stockage local indisponible. Les rapports ne pourront pas être conservés.\n\n"+e)}
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
-  renderList();sync.boot();
+  renderList();sync.boot();setTimeout(()=>videoUploader.run(),3000);
   if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').then(reg=>{reg.update();navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!dirty)location.reload()})}).catch(()=>{});
 })();
 window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
@@ -1147,7 +1268,24 @@ const sync={
     const q=`name='${name.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`+(parent?` and '${parent}' in parents`:'');
     const j=await (await this.api('drive/v3/files?fields=files(id)&q='+encodeURIComponent(q))).json();if(j.files&&j.files.length)return j.files[0].id;
     const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:[]})})).json();return c.id},
-  async ensureFolders(){if(this.folderId&&this.pdfFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId)},
+  async ensureFolders(){if(this.folderId&&this.pdfFolderId&&this.videoFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId);this.videoFolderId=await this.findOrCreateFolder('Vidéos',this.folderId)},
+  async uploadResumable(name,blob,mime,parent,onProgress){
+    const tok=await this.getToken(false);if(!tok)throw new Error('noauth');
+    const init=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':mime,'X-Upload-Content-Length':String(blob.size)},body:JSON.stringify({name,mimeType:mime,parents:[parent]})});
+    if(init.status===401)throw new Error('noauth');if(!init.ok)throw new Error('Drive init '+init.status);
+    const url=init.headers.get('Location');if(!url)throw new Error('Drive : URL de reprise absente');
+    const CH=8*1024*1024;let off=0,tries=0;
+    while(off<blob.size){
+      const end=Math.min(off+CH,blob.size);
+      const r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${off}-${end-1}/${blob.size}`},body:blob.slice(off,end)});
+      if(r.status===308){const rng=r.headers.get('Range');off=rng?parseInt(rng.split('-')[1])+1:end;tries=0}
+      else if(r.ok){const j=await r.json();onProgress&&onProgress(1);return j.id}
+      else if(++tries>4)throw new Error('Drive upload '+r.status);
+      else await new Promise(s=>setTimeout(s,1500*tries));
+      onProgress&&onProgress(off/blob.size);
+    }
+    throw new Error('Drive upload incomplet');
+  },
   async list(parent){const q=`'${parent}' in parents and trashed=false`;let files=[],pt='';
     do{const j=await (await this.api('drive/v3/files?pageSize=1000&fields=nextPageToken,files(id,name,appProperties)&q='+encodeURIComponent(q)+(pt?'&pageToken='+pt:''))).json();files=files.concat(j.files||[]);pt=j.nextPageToken||''}while(pt);return files},
   async upload(name,blob,mime,parent,id,props){
@@ -1206,6 +1344,7 @@ const sync={
       localStorage.setItem(LS('gpending'),JSON.stringify(p));
       this.lastSync=Date.now();localStorage.setItem(LS('lastSync'),this.lastSync);
       this.setStatus('Synchronisé à '+new Date(this.lastSync).toLocaleTimeString('fr-FR',{timeStyle:'short'}),'ok');
+      setTimeout(()=>videoUploader.run(),200);
     }catch(e){console.warn(e);
       if(e.message==='noauth')this.setStatus('Reconnexion à Google nécessaire','err');else this.setStatus('Erreur de synchronisation : '+e.message.slice(0,80),'err');
     }finally{this.busy=false;if(changed||true)renderList();this.renderSettings()}

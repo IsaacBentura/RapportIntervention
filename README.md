@@ -28,3 +28,8 @@ Ajouter une troisième société : dupliquer un dossier, ajouter une entrée dan
 Note : les anciens raccourcis pointant sur la racine (…/RapportIntervention/index.html)
 doivent être supprimés ; l'ancien fichier index.html à la racine est remplacé par la page d'accueil.
 Les rapports Ventura déjà saisis sont récupérés depuis le Drive à la première synchronisation.
+
+Vidéos : stockées temporairement sur le téléphone puis envoyées (envoi reprenable, 8 Mo par bloc)
+dans le sous-dossier « Vidéos » du Drive de la société ; rendues accessibles « à toute personne
+disposant du lien ». Le PDF contient la vignette cliquable et le lien ; aucun lecteur PDF mobile
+ne lit de vidéo intégrée, d'où ce choix. Le rapport JSON ne contient que la vignette et le lien.
