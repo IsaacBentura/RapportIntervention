@@ -146,6 +146,11 @@ details.help li{margin:3px 0}
 .pv .vg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 .pv .vg img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#222}
 .pv .vg a{font-size:11px;word-break:break-all;color:#3a7fc4}
+.verline{text-align:center;font-size:12px;color:var(--ink3);margin:18px 0 0}
+.updbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:30;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.updbar span{flex:1;font-size:14px}
+.updbar button{background:#fff;color:var(--ink);font-weight:600;padding:8px 14px;border-radius:8px}
+.updbar .later{background:none;color:#fff;font-weight:400;padding:8px}
 /* ---- misc ---- */
 .toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
@@ -179,6 +184,7 @@ dialog h3{margin-bottom:12px}
     <div class="syncbar" id="syncbar"><span id="syncTxt">Synchronisation non configurée</span><button onclick="go('settings')">Réglages</button></div>
     <input class="search" id="search" placeholder="Rechercher une adresse, un client, un objet…" oninput="renderList()">
     <div id="list"></div>
+    <p class="verline">Version <span class="verTxt"></span> · mise à jour le <span class="buildTxt"></span></p>
   </div>
   <button class="fab" onclick="newReport()" aria-label="Nouveau rapport">+</button>
 </section>
@@ -324,7 +330,7 @@ dialog h3{margin-bottom:12px}
       <button class="btn sec" onclick="exportData()">Sauvegarder (JSON)</button>
       <label class="btn sec" style="cursor:pointer">Restaurer<input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])"></label>
     </div>
-    <p class="hint" style="margin-top:14px;text-align:center">Version <span id="verTxt"></span></p>
+    <p class="hint" style="margin-top:14px;text-align:center">Version <span class="verTxt"></span> · mise à jour le <span class="buildTxt"></span></p>
     <p class="hint" id="storageNote" style="margin-top:10px">Les rapports sont stockés uniquement sur ce téléphone. Pensez à faire une sauvegarde de temps en temps.</p>
   </div>
 </section>
@@ -342,6 +348,7 @@ dialog h3{margin-bottom:12px}
 </dialog>
 
 <div class="toast" id="toast"></div>
+<div class="updbar hidden" id="updbar"><span>Nouvelle version disponible</span><button class="later" onclick="updbar.classList.add('hidden')">Plus tard</button><button onclick="applyUpdate()">Mettre à jour</button></div>
 
 <script>/** @license
  *
@@ -747,7 +754,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.6 – 07/09/2026';
+const APP_VERSION='1.7';const BUILD_DATE='07/09/2026 à 14:35';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -761,7 +768,7 @@ const LS=k=>COMPANY_KEY+':'+k;                       // clés locales propres à
 document.documentElement.style.setProperty('--blue',COMPANY.color);
 document.querySelector('meta[name=theme-color]').content=COMPANY.color;
 document.title='Rapports – '+COMPANY.label;document.getElementById('driveName').textContent=COMPANY.drive;
-document.getElementById('appTitle').textContent='Rapports – '+COMPANY.label;document.getElementById('verTxt').textContent=APP_VERSION;
+document.getElementById('appTitle').textContent='Rapports – '+COMPANY.label;document.querySelectorAll('.verTxt').forEach(e=>e.textContent=APP_VERSION);document.querySelectorAll('.buildTxt').forEach(e=>e.textContent=BUILD_DATE);
 /* =========================================================
    Stockage
    - Application native (Capacitor) : fichiers JSON dans le dossier privé
@@ -823,7 +830,7 @@ function renderList(){
   const q=(document.getElementById('search').value||'').toLowerCase();
   const el=document.getElementById('list');
   const rows=reports.filter(r=>!q||[r.addr,r.obj,r.text,clientName(r.clientId)].join(' ').toLowerCase().includes(q))
-    .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.num||'').localeCompare(a.num||'',undefined,{numeric:true})||(b.updatedAt||0)-(a.updatedAt||0));
   if(!rows.length){el.innerHTML=`<div class="empty"><h2>${reports.length?'Aucun résultat':'Aucun rapport pour l’instant'}</h2><p>${reports.length?'Essayez un autre mot.':'Appuyez sur + pour créer votre premier rapport.'}</p></div>`;return}
   el.innerHTML=rows.map(r=>`<button class="report" onclick="openReport('${r.id}')">
     <div class="d">${esc(fmtDate(r.date))}${r.num?' · n° '+esc(r.num):''}</div>
@@ -1213,9 +1220,21 @@ async function importData(file){
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
   renderList();sync.boot();setTimeout(()=>videoUploader.run(),3000);
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').then(reg=>{reg.update();navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!dirty)location.reload()})}).catch(()=>{});
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))setupUpdates();
 })();
 window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
+/* ---- mises à jour : proposer dès qu'une nouvelle version est prête ---- */
+let swReg=null,reloading=false;
+function offerUpdate(){document.getElementById('updbar').classList.remove('hidden')}
+async function setupUpdates(){
+  try{swReg=await navigator.serviceWorker.register('./sw.js')}catch(e){return}
+  if(swReg.waiting)offerUpdate();
+  swReg.addEventListener('updatefound',()=>{const nw=swReg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)offerUpdate()})});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload()});
+  const check=()=>swReg.update().catch(()=>{});
+  setInterval(check,30*60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});window.addEventListener('online',check);
+}
+async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.waiting)swReg.waiting.postMessage('skipWaiting');else location.reload()}
 </script>
 <script>
 /* =========================================================
