@@ -222,7 +222,7 @@ dialog h3{margin-bottom:12px}
         <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this.files);this.value=''">
       </label>
       <label class="addph">🖼 Galerie <span id="phcount"></span>
-        <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''">
+        <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''" id="galleryInput">
       </label>
     </div>
   </div>
@@ -303,6 +303,7 @@ dialog h3{margin-bottom:12px}
       <button class="btn sec" onclick="exportData()">Sauvegarder (JSON)</button>
       <label class="btn sec" style="cursor:pointer">Restaurer<input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])"></label>
     </div>
+    <p class="hint" style="margin-top:14px;text-align:center">Version <span id="verTxt"></span></p>
     <p class="hint" id="storageNote" style="margin-top:10px">Les rapports sont stockés uniquement sur ce téléphone. Pensez à faire une sauvegarde de temps en temps.</p>
   </div>
 </section>
@@ -725,6 +726,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
+const APP_VERSION='1.5 – 07/09/2026';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -738,7 +740,7 @@ const LS=k=>COMPANY_KEY+':'+k;                       // clés locales propres à
 document.documentElement.style.setProperty('--blue',COMPANY.color);
 document.querySelector('meta[name=theme-color]').content=COMPANY.color;
 document.title='Rapports – '+COMPANY.label;document.getElementById('driveName').textContent=COMPANY.drive;
-document.getElementById('appTitle').textContent='Rapports – '+COMPANY.label;
+document.getElementById('appTitle').textContent='Rapports – '+COMPANY.label;document.getElementById('verTxt').textContent=APP_VERSION;
 /* =========================================================
    Stockage
    - Application native (Capacitor) : fichiers JSON dans le dossier privé
@@ -1090,7 +1092,7 @@ async function importData(file){
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
   renderList();sync.boot();
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').then(reg=>{reg.update();navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!dirty)location.reload()})}).catch(()=>{});
 })();
 window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
 </script>
