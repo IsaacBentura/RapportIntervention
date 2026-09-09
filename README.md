@@ -29,7 +29,11 @@ Note : les anciens raccourcis pointant sur la racine (…/RapportIntervention/in
 doivent être supprimés ; l'ancien fichier index.html à la racine est remplacé par la page d'accueil.
 Les rapports Ventura déjà saisis sont récupérés depuis le Drive à la première synchronisation.
 
-Vidéos : stockées temporairement sur le téléphone puis envoyées (envoi reprenable, 8 Mo par bloc)
-dans le sous-dossier « Vidéos » du Drive de la société ; rendues accessibles « à toute personne
-disposant du lien ». Le PDF contient la vignette cliquable et le lien ; aucun lecteur PDF mobile
-ne lit de vidéo intégrée, d'où ce choix. Le rapport JSON ne contient que la vignette et le lien.
+Vidéos : stockées temporairement sur le téléphone puis publiées sur YouTube (chaîne du compte
+evadsarl26) en « non répertoriée » : lisibles par toute personne ayant le lien, absentes des
+recherches et de la chaîne. Le PDF contient la vignette cliquable et le lien youtu.be.
+Au premier envoi, l'app demande l'autorisation YouTube (bouton « Autoriser l'envoi sur YouTube »).
+Quota Google : ~6 vidéos par jour pour toute l'équipe ; au-delà, les vidéos restent « en attente »
+et partent le lendemain. Activer « YouTube Data API v3 » dans le projet Google Cloud
+(https://console.cloud.google.com/apis/library/youtube.googleapis.com?project=882950350881)
+et ajouter la portée .../auth/youtube.upload dans l'écran de consentement OAuth.

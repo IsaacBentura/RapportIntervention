@@ -241,7 +241,7 @@ dialog h3{margin-bottom:12px}
       </label>
     </div>
 
-    <div class="sect">Vidéos (envoyées sur le Drive, lien cliquable dans le PDF)</div>
+    <div class="sect">Vidéos (publiées sur YouTube, lien cliquable dans le PDF)</div>
     <div class="photos" id="videos"></div>
     <div class="row">
       <label class="addph">🎥 Filmer
@@ -251,7 +251,8 @@ dialog h3{margin-bottom:12px}
         <input type="file" accept="video/*" multiple onchange="addVideos(this.files);this.value=''">
       </label>
     </div>
-    <p class="hint" style="margin-top:8px">Conseil : filmer en 1080p (pas en 4K), environ 60 Mo par minute. L'envoi se fait dès que le réseau est disponible.</p>
+    <button class="btn hidden" id="ytAuth" style="width:100%;margin-top:10px" onclick="videoUploader.authorize()">Autoriser l'envoi sur YouTube</button>
+    <p class="hint" style="margin-top:8px">Les vidéos sont publiées sur YouTube en « non répertoriée » (visibles uniquement avec le lien). Conseil : filmer en 1080p, pas en 4K. Environ 6 vidéos par jour maximum (quota Google).</p>
   </div>
   <div class="actions"><div class="in">
     <button class="btn sec" onclick="preview()">Aperçu</button>
@@ -754,7 +755,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.7';const BUILD_DATE='07/09/2026 à 14:35';
+const APP_VERSION='1.8';const BUILD_DATE='09/09/2026 à 17:44';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -986,20 +987,22 @@ async function addVideos(files){
 function renderVideos(){
   const el=document.getElementById('videos');const vs=cur.videos||[];
   el.innerHTML=vs.map((v,i)=>{const p=videoUploader.progress[v.id];
-    const st=v.status==='done'?'Sur le Drive':v.status==='uploading'?`Envoi ${Math.round((p||0)*100)} %`:v.status==='error'?'Échec – réessai auto':'En attente de réseau';
+    const st=v.status==='done'?'Sur YouTube':v.status==='uploading'?`Envoi ${Math.round((p||0)*100)} %`:v.status==='error'?'Échec – réessai auto':v.status==='quota'?'Quota YouTube atteint – demain':v.status==='auth'?'Autorisation YouTube requise':'En attente de réseau';
     return `<div class="ph vid">
     ${v.thumb?`<img src="${v.thumb}" alt="">`:'<div style="aspect-ratio:4/3;background:#333"></div>'}<div class="play"></div>
     <span class="st ${v.status==='error'?'err':''}">${st} · ${fmtSize(v.size)}${v.dur?' · '+fmtDur(v.dur):''}</span>
     ${v.status==='uploading'?`<div class="prog"><i style="width:${Math.round((p||0)*100)}%"></i></div>`:''}
     <button class="x" onclick="removeVideo(${i})" aria-label="Retirer">×</button>
     <input placeholder="Légende…" value="${esc(v.cap)}" oninput="cur.videos[${i}].cap=this.value;mark()"></div>`}).join('');
+  const needAuth=vs.some(v=>v.status==='auth');document.getElementById('ytAuth').classList.toggle('hidden',!needAuth);
 }
-async function removeVideo(i){const v=cur.videos[i];if(!confirm('Retirer cette vidéo du rapport'+(v.driveId?' et du Drive':'')+' ?'))return;
-  cur.videos.splice(i,1);await vdb.del(v.id);if(v.driveId)sync.remove(v.driveId).catch(()=>{});renderVideos();mark();await save(true)}
+async function removeVideo(i){const v=cur.videos[i];if(!confirm('Retirer cette vidéo du rapport'+(v.ytId?' et de YouTube':v.driveId?' et du Drive':'')+' ?'))return;
+  cur.videos.splice(i,1);await vdb.del(v.id);if(v.ytId)sync.removeYouTube(v.ytId).catch(()=>{});else if(v.driveId)sync.remove(v.driveId).catch(()=>{});renderVideos();mark();await save(true)}
 
-const videoUploader={progress:{},running:false,
+const videoUploader={progress:{},running:false,stop:'',
+  async authorize(){const tok=await sync.getToken(true);if(!tok){toast('Autorisation refusée');return}this.stop='';(cur?cur.videos:[]).forEach(v=>{if(v.status==='auth')v.status='pending'});reports.forEach(r=>(r.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'}));renderVideos();this.run()},
   async run(){
-    if(this.running||!navigator.onLine||!sync.configured()||!sync.connected())return;this.running=true;
+    if(this.running||!navigator.onLine||!sync.configured()||!sync.connected())return;if(this.stop==='quota')return;this.running=true;this.stop='';
     try{
       const list=reports.slice();if(cur&&!list.some(x=>x.id===cur.id))list.push(cur);
       for(const r of list){
@@ -1008,14 +1011,17 @@ const videoUploader={progress:{},running:false,
           const blob=await vdb.get(v.id);if(!blob){if(!v.link)v.status='error';continue}
           try{
             v.status='uploading';this.progress[v.id]=0;if(cur&&cur.id===r.id)renderVideos();
-            await sync.ensureFolders();
-            const id=await sync.uploadResumable(v.name,blob,v.mime,sync.videoFolderId,p=>{this.progress[v.id]=p;if(cur&&cur.id===r.id)renderVideos()});
-            await sync.api(`drive/v3/files/${id}/permissions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'anyone',role:'reader'})});
-            v.driveId=id;v.link=`https://drive.google.com/file/d/${id}/view`;v.status='done';await vdb.del(v.id);
+            const title=[settings.name,r.num?'Rapport '+r.num:'',r.addr,fmtDate(r.date)].filter(Boolean).join(' – ').slice(0,100);
+            const meta={snippet:{title,description:[settings.name,r.addr,r.obj,v.cap].filter(Boolean).join('\n')},status:{privacyStatus:'unlisted',selfDeclaredMadeForKids:false}};
+            const id=await sync.uploadYouTube(meta,blob,v.mime,p=>{this.progress[v.id]=p;if(cur&&cur.id===r.id)renderVideos()});
+            v.ytId=id;v.link=`https://youtu.be/${id}`;v.status='done';await vdb.del(v.id);
             r.updatedAt=Date.now();await store.putReport(r);
             if(cur&&cur.id===r.id&&cur!==r){const cv=cur.videos.find(x=>x.id===v.id);if(cv)Object.assign(cv,v)}
             sync.schedule();
-          }catch(e){console.warn('upload vidéo',e);v.status='error';if(e.message==='noauth')break}
+          }catch(e){console.warn('upload vidéo',e);
+            if(e.message==='quota'){v.status='quota';this.stop='quota';break}
+            if(e.message==='scope'||e.message==='noauth'){v.status='auth';this.stop='auth';break}
+            v.status='error'}
           if(cur&&cur.id===r.id)renderVideos();
         }
       }
@@ -1052,7 +1058,7 @@ function preview(){
   h+=renderBody(r.text);
   if(r.photos.length)h+=`<div class="pk">Photos de l'intervention</div><div class="pg">`+r.photos.map(p=>`<figure><img src="${p.data}">${p.cap?`<figcaption>${esc(p.cap)}</figcaption>`:''}</figure>`).join('')+'</div>';
   const vids=(r.videos||[]);
-  if(vids.length)h+=`<div class="pk">Vidéos de l'intervention</div><div class="vg">`+vids.map(v=>`<figure>${v.thumb?`<img src="${v.thumb}">`:'<div style="aspect-ratio:16/10;background:#222"></div>'}<figcaption>${v.cap?esc(v.cap)+'<br>':''}${v.link?`<a href="${v.link}" target="_blank">${v.link}</a>`:'<i>Lien disponible après envoi sur le Drive</i>'}${v.dur?' · '+fmtDur(v.dur):''}</figcaption></figure>`).join('')+'</div>';
+  if(vids.length)h+=`<div class="pk">Vidéos de l'intervention</div><div class="vg">`+vids.map(v=>`<figure>${v.thumb?`<img src="${v.thumb}">`:'<div style="aspect-ratio:16/10;background:#222"></div>'}<figcaption>${v.cap?esc(v.cap)+'<br>':''}${v.link?`<a href="${v.link}" target="_blank">${v.link}</a>`:'<i>Lien disponible après envoi sur YouTube</i>'}${v.dur?' · '+fmtDur(v.dur):''}</figcaption></figure>`).join('')+'</div>';
   document.getElementById('pv').innerHTML=h;go('preview');
 }
 
@@ -1064,7 +1070,7 @@ function txt(s){return String(s??'').replace(/[\u2018\u2019\u201A]/g,"'").replac
 async function exportPdf(){
   readEditor();await save(true);
   const waiting=(cur.videos||[]).filter(v=>v.status!=='done');
-  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur le Drive : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
+  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur YouTube : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
   const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
   const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
   const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;
@@ -1139,7 +1145,7 @@ async function exportPdf(){
         doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);let ty=y+ch+4;
         if(v.cap){const cl=doc.splitTextToSize(txt(v.cap),cw);doc.text(cl,x,ty);ty+=cl.length*3.8}
         if(v.link){doc.setTextColor(...BLUE);doc.setFontSize(7.5);const ll=doc.splitTextToSize(v.link,cw);doc.text(ll,x,ty);doc.link(x,y,cw,ch,{url:v.link});doc.link(x,ty-3,cw,ll.length*3.4,{url:v.link})}
-        else{doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text("Vidéo en cours d'envoi sur le Drive : lien non disponible",x,ty)}
+        else{doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text("Vidéo en cours d'envoi sur YouTube : lien non disponible",x,ty)}
         if(v.dur){doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text('Durée '+fmtDur(v.dur)+' · '+fmtSize(v.size),x+cw,y+ch+4,{align:'right'})}});
       y+=ch+22;
     }
@@ -1244,7 +1250,7 @@ async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.wait
    Règle de conflit : la modification la plus récente gagne.
    ========================================================= */
 const sync={
-  token:null,exp:0,folderId:null,pdfFolderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('lastSync'))||0,
+  token:null,exp:0,scopes:'',hasYouTube(){return /youtube\.upload/.test(this.scopes||'')},folderId:null,pdfFolderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('lastSync'))||0,
   clientId(){return (settings.gClientId||GOOGLE_CLIENT_ID||'').trim()},
   configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())},
   connected(){return localStorage.getItem('gconnected')==='1'},
@@ -1256,22 +1262,22 @@ const sync={
     document.getElementById('btnSync').classList.toggle('spin',cls==='busy');bar.querySelector('button').textContent=cls==='err'&&this.configured()?'Réessayer':'Réglages';
     bar.querySelector('button').onclick=cls==='err'&&this.configured()?()=>this.full(true):()=>go('settings')},
   renderSettings(){const st=document.getElementById('gStatus');if(!st)return;
-    st.textContent=!this.configured()?"Identifiant client Google invalide : ouvrez « Réglages avancés » et collez l'identifiant fourni par l'administrateur.":this.connected()?"Connecté. Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
+    st.textContent=!this.configured()?"Identifiant client Google invalide : ouvrez « Réglages avancés » et collez l'identifiant fourni par l'administrateur.":this.connected()?(this.hasYouTube()?"Connecté (Drive + YouTube). ":"Connecté (Drive ; l'accès YouTube sera demandé au premier envoi de vidéo). ")+"Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
     document.getElementById('btnGConnect').disabled=!this.configured();document.getElementById('btnGDisc').classList.toggle('hidden',!this.connected())},
 
   /* --- authentification (Google Identity Services, jeton 1 h) --- */
   loadGis(){if(window.google&&google.accounts)return Promise.resolve(true);return new Promise(r=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>r(true);s.onerror=()=>r(false);document.head.appendChild(s)})},
   async getToken(interactive){
     if(this.token&&Date.now()<this.exp-60000)return this.token;
-    const saved=JSON.parse(localStorage.getItem('gtok')||'null');if(saved&&Date.now()<saved.e-60000){this.token=saved.t;this.exp=saved.e;return this.token}
+    const saved=JSON.parse(localStorage.getItem('gtok')||'null');if(saved&&Date.now()<saved.e-60000){this.token=saved.t;this.exp=saved.e;this.scopes=saved.s||'';return this.token}
     if(!this.configured()||!navigator.onLine)return null;
     if(!interactive&&!this.connected())return null;
     if(!await this.loadGis())return null;
     return new Promise(res=>{
-      const tc=google.accounts.oauth2.initTokenClient({client_id:this.clientId(),scope:'https://www.googleapis.com/auth/drive.file',
-        callback:t=>{if(t&&t.access_token){this.token=t.access_token;this.exp=Date.now()+(t.expires_in||3600)*1000;localStorage.setItem('gtok',JSON.stringify({t:this.token,e:this.exp}));localStorage.setItem('gconnected','1');res(this.token)}else res(null)},
+      const tc=google.accounts.oauth2.initTokenClient({client_id:this.clientId(),scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/youtube.upload',
+        callback:t=>{if(t&&t.access_token){this.token=t.access_token;this.exp=Date.now()+(t.expires_in||3600)*1000;this.scopes=t.scope||'';localStorage.setItem('gtok',JSON.stringify({t:this.token,e:this.exp,s:this.scopes}));localStorage.setItem('gconnected','1');res(this.token)}else res(null)},
         error_callback:()=>res(null)});
-      tc.requestAccessToken({prompt:interactive?'select_account':''});
+      tc.requestAccessToken({prompt:interactive?'consent':''});
     });
   },
   async connect(){const f=document.getElementById('s_gcid');if(f&&f.value.trim()){settings.gClientId=f.value.trim();await store.saveSettings(settings)}const tok=await this.getToken(true);if(!tok){toast('Connexion Google impossible');return}toast('Connecté à Google');this.renderSettings();this.full(true)},
@@ -1287,24 +1293,28 @@ const sync={
     const q=`name='${name.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`+(parent?` and '${parent}' in parents`:'');
     const j=await (await this.api('drive/v3/files?fields=files(id)&q='+encodeURIComponent(q))).json();if(j.files&&j.files.length)return j.files[0].id;
     const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:[]})})).json();return c.id},
-  async ensureFolders(){if(this.folderId&&this.pdfFolderId&&this.videoFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId);this.videoFolderId=await this.findOrCreateFolder('Vidéos',this.folderId)},
-  async uploadResumable(name,blob,mime,parent,onProgress){
+  async ensureFolders(){if(this.folderId&&this.pdfFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId)},
+  async uploadYouTube(meta,blob,mime,onProgress){
     const tok=await this.getToken(false);if(!tok)throw new Error('noauth');
-    const init=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':mime,'X-Upload-Content-Length':String(blob.size)},body:JSON.stringify({name,mimeType:mime,parents:[parent]})});
-    if(init.status===401)throw new Error('noauth');if(!init.ok)throw new Error('Drive init '+init.status);
-    const url=init.headers.get('Location');if(!url)throw new Error('Drive : URL de reprise absente');
+    if(!this.hasYouTube())throw new Error('scope');
+    const init=await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':mime,'X-Upload-Content-Length':String(blob.size)},body:JSON.stringify(meta)});
+    if(init.status===401)throw new Error('noauth');
+    if(init.status===403){const tx=await init.text();if(/quota/i.test(tx))throw new Error('quota');if(/insufficient|scope/i.test(tx))throw new Error('scope');throw new Error('YouTube 403 '+tx.slice(0,120))}
+    if(!init.ok)throw new Error('YouTube init '+init.status+' '+(await init.text()).slice(0,120));
+    const url=init.headers.get('Location');if(!url)throw new Error('YouTube : URL de reprise absente');
     const CH=8*1024*1024;let off=0,tries=0;
     while(off<blob.size){
       const end=Math.min(off+CH,blob.size);
       const r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${off}-${end-1}/${blob.size}`},body:blob.slice(off,end)});
       if(r.status===308){const rng=r.headers.get('Range');off=rng?parseInt(rng.split('-')[1])+1:end;tries=0}
       else if(r.ok){const j=await r.json();onProgress&&onProgress(1);return j.id}
-      else if(++tries>4)throw new Error('Drive upload '+r.status);
+      else if(++tries>4)throw new Error('YouTube upload '+r.status);
       else await new Promise(s=>setTimeout(s,1500*tries));
       onProgress&&onProgress(off/blob.size);
     }
-    throw new Error('Drive upload incomplet');
+    throw new Error('YouTube upload incomplet');
   },
+  async removeYouTube(id){try{await this.api('youtube/v3/videos?id='+encodeURIComponent(id),{method:'DELETE'})}catch(e){if(!/404/.test(e.message))throw e}},
   async list(parent){const q=`'${parent}' in parents and trashed=false`;let files=[],pt='';
     do{const j=await (await this.api('drive/v3/files?pageSize=1000&fields=nextPageToken,files(id,name,appProperties)&q='+encodeURIComponent(q)+(pt?'&pageToken='+pt:''))).json();files=files.concat(j.files||[]);pt=j.nextPageToken||''}while(pt);return files},
   async upload(name,blob,mime,parent,id,props){
