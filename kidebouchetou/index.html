@@ -757,7 +757,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.16';const BUILD_DATE='11/09/2026 à 12:22';
+const APP_VERSION='1.17';const BUILD_DATE='11/09/2026 à 13:06';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -815,7 +815,7 @@ if(CAP){
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
-const GOOGLE_CLIENT_SECRET='__GOOGLE_CLIENT_SECRET__';
+const GOOGLE_CLIENT_SECRET='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';
 const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com'; // à remplacer par l'identifiant OAuth (type Application Web)
 const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0,updatedAt:0},COMPANY.defaults,{title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72});
 let settings=Object.assign({},DEF_SETTINGS);
