@@ -318,13 +318,15 @@ dialog h3{margin-bottom:12px}
     <div class="sect">Synchronisation Google Drive (équipe)</div>
     <p class="hint" style="margin-top:0">Les rapports, clients et réglages sont partagés via le dossier « <span id="driveName"></span> » du Drive du compte connecté. Les PDF générés y sont aussi déposés (sous-dossier PDF).</p>
     <details class="help" style="background:#fff;border:1px solid var(--line)"><summary>Réglages avancés (ne pas modifier)</summary>
-    <div class="field" style="margin-top:10px"><label>Identifiant client Google (OAuth)</label><input id="s_gcid" placeholder="xxxxx.apps.googleusercontent.com" oninput="settings.gClientId=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
+    <div class="field" style="margin-top:10px"><label>Secret client Google (OAuth)</label><input id="s_gsec" oninput="settings.gClientSecret=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
+    <div class="field"><label>Identifiant client Google (OAuth)</label><input id="s_gcid" placeholder="xxxxx.apps.googleusercontent.com" oninput="settings.gClientId=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
     </details>
     <p class="hint" id="gStatus"></p>
     <div class="rg">
       <button class="btn" id="btnGConnect" onclick="sync.connect()">Se connecter à Google</button>
       <button class="btn danger" id="btnGDisc" onclick="sync.disconnect()">Se déconnecter</button>
     </div>
+    <button class="btn sec hidden" id="btnYt" style="width:100%;margin-top:10px" onclick="sync.redirectAuth('yt')">Autoriser l'envoi des vidéos sur YouTube</button>
 
     <div class="sect">Données</div>
     <div class="rg">
@@ -755,7 +757,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.11';const BUILD_DATE='09/09/2026 à 18:54';
+const APP_VERSION='1.16';const BUILD_DATE='11/09/2026 à 12:22';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -813,8 +815,9 @@ if(CAP){
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
+const GOOGLE_CLIENT_SECRET='__GOOGLE_CLIENT_SECRET__';
 const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com'; // à remplacer par l'identifiant OAuth (type Application Web)
-const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,logo:'',logoW:0,logoH:0,updatedAt:0},COMPANY.defaults,{title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72});
+const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0,updatedAt:0},COMPANY.defaults,{title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72});
 let settings=Object.assign({},DEF_SETTINGS);
 let reports=[],clients=[],cur=null,dirty=false;
 
@@ -1000,7 +1003,7 @@ async function removeVideo(i){const v=cur.videos[i];if(!confirm('Retirer cette v
   cur.videos.splice(i,1);await vdb.del(v.id);if(v.ytId)sync.removeYouTube(v.ytId).catch(()=>{});else if(v.driveId)sync.remove(v.driveId).catch(()=>{});renderVideos();mark();await save(true)}
 
 const videoUploader={progress:{},running:false,stop:'',
-  async authorize(){await sync.redirectAuth()},
+  async authorize(){await sync.redirectAuth('yt')},
   async _authorizeOld(){const tok=await sync.getToken(true);if(!tok){toast('Autorisation refusée');return}this.stop='';(cur?cur.videos:[]).forEach(v=>{if(v.status==='auth')v.status='pending'});reports.forEach(r=>(r.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'}));renderVideos();this.run()},
   async run(){
     if(this.running||!navigator.onLine||!sync.configured()||!sync.connected())return;if(this.stop==='quota')return;this.running=true;this.stop='';
@@ -1193,7 +1196,7 @@ async function saveClient(){
 async function deleteClient(id){if(!confirm('Supprimer ce client ? Les rapports existants sont conservés.'))return;await store.delClient(id);clients=clients.filter(c=>c.id!==id);sync.markDeleted('c',id);sync.schedule();renderClients()}
 
 /* ================= réglages ================= */
-function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=settings.gClientId||'';renderLogo();sync.renderSettings()}
+function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=settings.gClientId||'';s_gsec.value=settings.gClientSecret||'';renderLogo();sync.renderSettings()}
 function renderLogo(){const im=document.getElementById('s_logoImg');im.classList.toggle('hidden',!settings.logo);document.getElementById('s_logoDel').classList.toggle('hidden',!settings.logo);if(settings.logo)im.src=settings.logo}
 async function setLogo(file){
   if(!file){settings.logo='';settings.logoW=settings.logoH=0}
@@ -1203,7 +1206,7 @@ async function setLogo(file){
     const png=c.toDataURL('image/png');const jpg=c.toDataURL('image/jpeg',0.85);
     settings.logo=(file.type==='image/png'||file.type==='image/svg+xml'||file.type==='image/webp')&&png.length<400000?png:jpg;settings.logoW=w;settings.logoH=h}
   settings.updatedAt=Date.now();await store.saveSettings(settings);renderLogo();sync.schedule();toast(file?'Logo enregistré':'Logo retiré')}
-function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.trim(),tel:s_tel.value.trim(),mail:s_mail.value.trim(),rcs:s_rcs.value.trim(),title:s_title.value.trim()||"RAPPORT D'INTERVENTION",footer:s_footer.value.trim(),px:+s_px.value,q:+s_q.value,gClientId:s_gcid.value.trim(),logo:settings.logo,logoW:settings.logoW,logoH:settings.logoH,updatedAt:Date.now()};
+function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.trim(),tel:s_tel.value.trim(),mail:s_mail.value.trim(),rcs:s_rcs.value.trim(),title:s_title.value.trim()||"RAPPORT D'INTERVENTION",footer:s_footer.value.trim(),px:+s_px.value,q:+s_q.value,gClientId:s_gcid.value.trim(),gClientSecret:s_gsec.value.trim(),logo:settings.logo,logoW:settings.logoW,logoH:settings.logoH,updatedAt:Date.now()};
   store.saveSettings(settings);sync.schedule();toast('Réglages enregistrés');go('list')}
 
 /* ================= sauvegarde / restauration ================= */
@@ -1222,7 +1225,7 @@ async function importData(file){
 
 /* ================= démarrage ================= */
 (async()=>{
-  try{await store.init();reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings());if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID}
+  try{await store.init();reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings());if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID;if(!settings.gClientSecret)settings.gClientSecret=GOOGLE_CLIENT_SECRET}
   catch(e){alert("Stockage local indisponible. Les rapports ne pourront pas être conservés.\n\n"+e)}
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
@@ -1251,7 +1254,7 @@ async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.wait
    Règle de conflit : la modification la plus récente gagne.
    ========================================================= */
 const sync={
-  token:null,exp:0,scopes:'',hasYouTube(){return /youtube\.upload/.test(this.scopes||'')},folderId:null,pdfFolderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('lastSync'))||0,
+  tok:{drive:null,yt:null},hasYouTube(){return !!(localStorage.getItem('grefresh_yt')||(this.tok.yt&&Date.now()<this.tok.yt.e))},get token(){return this.tok.drive&&this.tok.drive.t},folderId:null,pdfFolderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('lastSync'))||0,
   clientId(){return (settings.gClientId||GOOGLE_CLIENT_ID||'').trim()},
   configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())},
   connected(){return localStorage.getItem('gconnected')==='1'},
@@ -1261,58 +1264,66 @@ const sync={
   /* --- état affiché --- */
   setStatus(txt,cls){const bar=document.getElementById('syncbar');bar.className='syncbar '+(cls||'');document.getElementById('syncTxt').textContent=txt;
     document.getElementById('btnSync').classList.toggle('spin',cls==='busy');bar.querySelector('button').textContent=cls==='err'&&this.configured()?'Réessayer':'Réglages';
-    bar.querySelector('button').onclick=cls==='err'&&this.configured()?()=>{if(this.connected())this.full(false);else this.redirectAuth()}:()=>go('settings')},
+    bar.querySelector('button').onclick=cls==='err'&&this.configured()?()=>{if(this.connected())this.full(false);else this.redirectAuth('drive')}:()=>go('settings')},
   renderSettings(){const st=document.getElementById('gStatus');if(!st)return;
-    st.textContent=!this.configured()?"Identifiant client Google invalide : ouvrez « Réglages avancés » et collez l'identifiant fourni par l'administrateur.":this.connected()?(this.hasYouTube()?"Connecté (Drive + YouTube)":"Connecté (Drive ; l'accès YouTube sera demandé au premier envoi de vidéo)")+(localStorage.getItem('ghint')?" avec "+localStorage.getItem('ghint'):"")+". Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
-    document.getElementById('btnGConnect').disabled=!this.configured();document.getElementById('btnGDisc').classList.toggle('hidden',!this.connected())},
+    st.textContent=!this.configured()?"Identifiant ou secret client Google manquant : ouvrez « Réglages avancés » et collez les valeurs fournies par l'administrateur.":this.connected()?(this.hasYouTube()?"Connecté (Drive + YouTube)":"Connecté (Drive ; YouTube non encore autorisé)")+(localStorage.getItem('ghint')?" avec "+localStorage.getItem('ghint'):"")+". Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
+    document.getElementById('btnGConnect').disabled=!this.configured();document.getElementById('btnGDisc').classList.toggle('hidden',!this.connected());document.getElementById('btnYt').classList.toggle('hidden',!this.connected()||this.hasYouTube())},
 
   /* --- authentification (Google Identity Services, jeton 1 h) --- */
-  loadGis(){if(window.google&&google.accounts)return Promise.resolve(true);return new Promise(r=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>r(true);s.onerror=()=>r(false);document.head.appendChild(s)})},
-  SCOPES:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/youtube.upload',
+  SCOPES:{drive:'https://www.googleapis.com/auth/drive.file',yt:'https://www.googleapis.com/auth/youtube.upload'},
   redirectUri(){return location.origin+location.pathname.replace(/[^/]*$/,'')},
-  /* Autorisation interactive : redirection plein écran vers Google (pas de fenêtre surgissante) */
-  async redirectAuth(){
+  clientSecret(){return (settings.gClientSecret||GOOGLE_CLIENT_SECRET||'').trim()},
+  configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())&&this.clientSecret().length>10&&!/^__/.test(this.clientSecret())},
+  /* --- Authorization Code + PKCE (flux recommandé par Google ; requis pour YouTube) --- */
+  rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
+  async sha256b64(s){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
+  async redirectAuth(kind='drive'){
     if(cur&&dirty)await save(true);
-    sessionStorage.setItem('gauth_pending',JSON.stringify({view:cur?'edit':'list',id:cur&&cur.id}));
-    const p=new URLSearchParams({client_id:this.clientId(),redirect_uri:this.redirectUri(),response_type:'token',scope:this.SCOPES,include_granted_scopes:'true',prompt:'select_account',login_hint:localStorage.getItem('ghint')||''});
+    const verifier=this.rnd(64),state=this.rnd(16);
+    sessionStorage.setItem('gauth_pending',JSON.stringify({view:cur?'edit':'list',id:cur&&cur.id,verifier,state,kind}));
+    const p=new URLSearchParams({client_id:this.clientId(),redirect_uri:this.redirectUri(),response_type:'code',scope:this.SCOPES[kind],access_type:'offline',prompt:'consent select_account',state,code_challenge:await this.sha256b64(verifier),code_challenge_method:'S256',login_hint:localStorage.getItem('ghint')||''});
     location.href='https://accounts.google.com/o/oauth2/v2/auth?'+p.toString();
   },
-  /* Retour de Google : jeton dans le fragment de l'URL */
+  storeTokens(kind,j){const o={t:j.access_token,e:Date.now()+((+j.expires_in)||3600)*1000};this.tok[kind]=o;
+    if(j.refresh_token)localStorage.setItem('grefresh_'+kind,j.refresh_token);
+    localStorage.setItem('gtok_'+kind,JSON.stringify(o));if(kind==='drive')localStorage.setItem('gconnected','1')},
+  async tokenRequest(params){
+    const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(Object.assign({client_id:this.clientId(),client_secret:this.clientSecret()},params))});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.error||('token '+r.status));return j;
+  },
   handleRedirect(){
-    if(!location.hash.includes('access_token='))return false;
-    const h=new URLSearchParams(location.hash.slice(1));history.replaceState(null,'',location.pathname+location.search);
-    if(h.get('error')){toast('Autorisation refusée : '+h.get('error'));return true}
-    this.token=h.get('access_token');this.exp=Date.now()+(+h.get('expires_in')||3600)*1000;this.scopes=h.get('scope')||'';
-    localStorage.setItem('gtok',JSON.stringify({t:this.token,e:this.exp,s:this.scopes}));localStorage.setItem('gconnected','1');this.saveHint();
+    const q=new URLSearchParams(location.search);if(!q.get('code')&&!q.get('error'))return false;
     const pend=JSON.parse(sessionStorage.getItem('gauth_pending')||'null');sessionStorage.removeItem('gauth_pending');
-    toast('Connecté à Google');
-    if(pend&&pend.view==='edit'&&pend.id){const r=reports.find(x=>x.id===pend.id);if(r){openReport(r.id);(cur.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'});renderVideos()}}
-    setTimeout(()=>{this.full(false);videoUploader.stop='';videoUploader.run()},300);
+    history.replaceState(null,'',location.pathname);
+    if(q.get('error')){toast('Autorisation refusée : '+q.get('error'));return true}
+    if(!pend||pend.state!==q.get('state')){toast('Retour Google invalide, réessayez');return true}
+    (async()=>{try{
+      const j=await this.tokenRequest({code:q.get('code'),code_verifier:pend.verifier,grant_type:'authorization_code',redirect_uri:this.redirectUri()});
+      this.storeTokens(pend.kind||'drive',j);if(pend.kind==='yt'){toast('YouTube autorisé')}else{await this.saveHint();toast('Connecté à Google')}
+      if(pend.view==='edit'&&pend.id){const r=reports.find(x=>x.id===pend.id);if(r){openReport(r.id);(cur.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'});renderVideos()}}
+      this.renderSettings();this.full(false);videoUploader.stop='';setTimeout(()=>videoUploader.run(),500);
+    }catch(e){console.warn(e);toast('Connexion Google échouée : '+e.message.slice(0,80))}})();
     return true;
   },
-  async getToken(interactive){
-    if(this.token&&Date.now()<this.exp-60000)return this.token;
-    const saved=JSON.parse(localStorage.getItem('gtok')||'null');if(saved&&Date.now()<saved.e-60000){this.token=saved.t;this.exp=saved.e;this.scopes=saved.s||'';return this.token}
-    if(!this.configured()||!navigator.onLine)return null;
-    if(interactive){await this.redirectAuth();return null}
-    if(!this.connected())return null;
-    if(!await this.loadGis())return null;
-    return new Promise(res=>{
-      const tc=google.accounts.oauth2.initTokenClient({client_id:this.clientId(),scope:this.SCOPES,
-        callback:t=>{if(t&&t.access_token){this.token=t.access_token;this.exp=Date.now()+(t.expires_in||3600)*1000;this.scopes=t.scope||'';localStorage.setItem('gtok',JSON.stringify({t:this.token,e:this.exp,s:this.scopes}));this.saveHint();localStorage.setItem('gconnected','1');res(this.token)}else res(null)},
-        error_callback:()=>res(null)});
-      tc.requestAccessToken({prompt:'',hint:localStorage.getItem('ghint')||undefined});
-    });
+  async getToken(interactive,kind='drive'){
+    const cur_=this.tok[kind];if(cur_&&Date.now()<cur_.e-60000)return cur_.t;
+    const saved=JSON.parse(localStorage.getItem('gtok_'+kind)||'null');if(saved&&Date.now()<saved.e-60000){this.tok[kind]=saved;return saved.t}
+    if(!this.configured())return null;
+    const rt=localStorage.getItem('grefresh_'+kind);
+    if(rt&&navigator.onLine){try{const j=await this.tokenRequest({refresh_token:rt,grant_type:'refresh_token'});this.storeTokens(kind,j);return this.tok[kind].t}
+      catch(e){console.warn('refresh',e);if(/invalid_grant/.test(e.message)){localStorage.removeItem('grefresh_'+kind);localStorage.removeItem('gtok_'+kind);if(kind==='drive')localStorage.removeItem('gconnected')}}}
+    if(interactive){await this.redirectAuth(kind);return null}
+    return null;
   },
-  async saveHint(){try{const r=await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:{Authorization:'Bearer '+this.token}});const j=await r.json();if(j.user&&j.user.emailAddress){localStorage.setItem('ghint',j.user.emailAddress);this.account=j.user.emailAddress;this.renderSettings()}}catch(e){}},
-  async connect(){const f=document.getElementById('s_gcid');if(f&&f.value.trim()){settings.gClientId=f.value.trim();await store.saveSettings(settings)}await this.redirectAuth()},
-  disconnect(){if(this.token&&window.google)try{google.accounts.oauth2.revoke(this.token,()=>{})}catch(e){}
-    this.token=null;this.exp=0;this.scopes='';this.folderId=null;['gtok','gconnected','ghint'].forEach(k=>localStorage.removeItem(k));this.renderSettings();this.setStatus('Non connecté à Google');toast('Déconnecté')},
+  async saveHint(){try{const tok=await this.getToken(false,'drive');if(!tok)return;const r=await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:{Authorization:'Bearer '+tok}});const j=await r.json();if(j.user&&j.user.emailAddress){localStorage.setItem('ghint',j.user.emailAddress);this.renderSettings()}}catch(e){}},
+  async connect(){const f=document.getElementById('s_gcid');if(f&&f.value.trim()){settings.gClientId=f.value.trim();await store.saveSettings(settings)}await this.redirectAuth('drive')},
+  disconnect(){for(const k of ['drive','yt']){const rt=localStorage.getItem('grefresh_'+k);if(rt)fetch('https://oauth2.googleapis.com/revoke?token='+encodeURIComponent(rt),{method:'POST'}).catch(()=>{})}
+    this.tok={drive:null,yt:null};this.folderId=null;['gtok_drive','gtok_yt','grefresh_drive','grefresh_yt','gconnected','ghint','gtok','grefresh'].forEach(k=>localStorage.removeItem(k));this.renderSettings();this.setStatus('Non connecté à Google');toast('Déconnecté')},
 
   /* --- appels Drive --- */
-  async api(path,opt={},interactive=false){const tok=await this.getToken(interactive);if(!tok)throw new Error('noauth');
+  async api(path,opt={},interactive=false){const tok=await this.getToken(interactive,'drive');if(!tok)throw new Error('noauth');
     const r=await fetch('https://www.googleapis.com/'+path,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+tok},opt.headers||{})}));
-    if(r.status===401){this.token=null;localStorage.removeItem('gtok');throw new Error('noauth')}
+    if(r.status===401){this.tok.drive=null;localStorage.removeItem('gtok_drive');throw new Error('noauth')}
     if(!r.ok)throw new Error('Drive '+r.status+' '+(await r.text()).slice(0,200));return r},
   async findOrCreateFolder(name,parent){
     const q=`name='${name.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`+(parent?` and '${parent}' in parents`:'');
@@ -1320,8 +1331,7 @@ const sync={
     const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:[]})})).json();return c.id},
   async ensureFolders(){if(this.folderId&&this.pdfFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId)},
   async uploadYouTube(meta,blob,mime,onProgress){
-    const tok=await this.getToken(false);if(!tok)throw new Error('noauth');
-    if(!this.hasYouTube())throw new Error('scope');
+    const tok=await this.getToken(false,'yt');if(!tok)throw new Error('scope');
     const init=await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':mime,'X-Upload-Content-Length':String(blob.size)},body:JSON.stringify(meta)});
     if(init.status===401)throw new Error('noauth');
     if(init.status===403){const tx=await init.text();if(/quota/i.test(tx))throw new Error('quota');if(/insufficient|scope/i.test(tx))throw new Error('scope');throw new Error('YouTube 403 '+tx.slice(0,120))}
@@ -1339,7 +1349,7 @@ const sync={
     }
     throw new Error('YouTube upload incomplet');
   },
-  async removeYouTube(id){try{await this.api('youtube/v3/videos?id='+encodeURIComponent(id),{method:'DELETE'})}catch(e){if(!/404/.test(e.message))throw e}},
+  async removeYouTube(id){const tok=await this.getToken(false,'yt');if(!tok)return;const r=await fetch('https://www.googleapis.com/youtube/v3/videos?id='+encodeURIComponent(id),{method:'DELETE',headers:{Authorization:'Bearer '+tok}});if(!r.ok&&r.status!==404)throw new Error('YouTube '+r.status)},
   async list(parent){const q=`'${parent}' in parents and trashed=false`;let files=[],pt='';
     do{const j=await (await this.api('drive/v3/files?pageSize=1000&fields=nextPageToken,files(id,name,appProperties)&q='+encodeURIComponent(q)+(pt?'&pageToken='+pt:''))).json();files=files.concat(j.files||[]);pt=j.nextPageToken||''}while(pt);return files},
   async upload(name,blob,mime,parent,id,props){

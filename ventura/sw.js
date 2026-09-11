@@ -1,5 +1,5 @@
 // Service worker : hors-ligne + mise à jour proposée à l'utilisateur.
-const CACHE='rapports-ventura-1-11';
+const CACHE='rapports-ventura-1-16';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(u=>c.add(new Request(u,{cache:'reload'})).catch(()=>{})))))});
 self.addEventListener('message',e=>{if(e.data==='skipWaiting')self.skipWaiting()});
