@@ -66,5 +66,6 @@ un carnet ▸ Exporter ▸ ENEX (un fichier par carnet ; le nom du fichier devie
 modifiable avant l'import). Conversion : titres → MAJUSCULES, listes → puces, cases cochées → coches,
 tableaux → une puce par ligne, liens conservés entre parenthèses ; images → photos compressées ;
 PDF/audio/autres → pièces jointes envoyées sur le Drive après l'import ; étiquettes, dates de création
-et rappels conservés. Une note déjà importée (même titre et date de création) est ignorée au réimport.
+et rappels conservés. Une note déjà importée (même titre et date de création) est ignorée au réimport. Case « Restaurer uniquement les dates de modification » : relit les .enex et remet la date Evernote sur les notes déjà importées, sans rien créer.
+Date de modification : changée uniquement par une saisie du plombier ; les envois de fichiers, liens avec un rapport, corbeille et synchro utilisent une révision technique séparée (`rev`).
 Le fichier est lu en flux, note par note : des exports de plusieurs centaines de Mo (centaines de photos) passent sur PC. Le téléphone récupère les notes par la synchronisation. La liste affiche 200 notes puis « Afficher plus ».

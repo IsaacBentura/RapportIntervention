@@ -18,6 +18,9 @@ h1,h2,h3{margin:0;font-weight:600}.hidden{display:none!important}
 .top{position:sticky;top:0;z-index:5;background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;display:flex;align-items:center;gap:10px}
 .top h1{font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top button{color:#fff;font-size:15px;padding:6px 8px;border-radius:8px;min-height:40px}.top button:active{background:rgba(255,255,255,.15)}.top .ico{font-size:22px;line-height:1;width:40px}
+.top .back{display:flex;align-items:center;gap:4px;flex:1;min-width:0;color:#fff;text-decoration:none;border-radius:8px;padding:4px 6px 4px 0}
+.top .back:active{background:rgba(255,255,255,.15)}.top .back .ico{display:inline-flex;align-items:center;justify-content:center;width:34px;height:36px;flex:none}
+.top .back h1{flex:1;min-width:0}
 .view{max-width:760px;margin:0 auto;padding:16px 16px calc(96px + var(--safe-b))}
 .search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-bottom:10px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
@@ -87,7 +90,7 @@ textarea#f_body{min-height:44vh;line-height:1.5;resize:vertical}
 .updbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:30;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .updbar span{flex:1;font-size:14px}.updbar button{background:#fff;color:var(--ink);font-weight:600;padding:8px 14px;border-radius:8px}.updbar .later{background:none;color:#fff;font-weight:400;padding:8px}
 .nbrow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
-.nbrow .n{flex:1}.nbrow .n span{font-size:13px;color:var(--ink2);display:block}
+.nbrow .n{flex:1;min-width:0}.nbrow .n span{font-size:13px;color:var(--ink2);display:block}.nbrow button.n:active{color:var(--blue2)}
 .nbrow button{color:var(--blue2);padding:6px 10px;border-radius:8px;font-size:14px}.nbrow button.del{color:var(--warn)}
 dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,420px);box-shadow:0 20px 60px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(27,39,51,.5)}
 dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{flex:1}
@@ -118,8 +121,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
 <!-- ============ LISTE ============ -->
 <section id="v-list">
   <header class="top">
-    <button class="ico" onclick="location.href='../'" title="Rapports">‹</button>
-    <h1 id="appTitle">Notes</h1>
+    <a class="back" href="../" title="Retour aux rapports"><span class="ico">‹</span><h1 id="appTitle">Notes</h1></a>
     <button class="ico" onclick="sync.full()" id="btnSync" title="Synchroniser">↻</button>
     <button class="ico" onclick="dlgSort.showModal()" title="Trier">⇅</button>
     <button onclick="go('notebooks')">Carnets</button>
@@ -140,8 +142,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
 <!-- ============ ÉDITEUR ============ -->
 <section id="v-edit" class="hidden">
   <header class="top">
-    <button class="ico" onclick="closeEditor()" aria-label="Retour">‹</button>
-    <h1 id="editTitle">Note</h1>
+    <a class="back" href="#" onclick="closeEditor();return false"><span class="ico">‹</span><h1 id="editTitle">Note</h1></a>
     <button onclick="trashCurrent()">Corbeille</button>
   </header>
   <div class="view">
@@ -199,8 +200,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
 <!-- ============ CARNETS ============ -->
 <section id="v-notebooks" class="hidden">
   <header class="top">
-    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Carnets</h1>
+    <a class="back" href="#" onclick="go('list');return false"><span class="ico">‹</span><h1>Carnets</h1></a>
     <button onclick="editNotebook()">Ajouter</button>
   </header>
   <div class="view">
@@ -215,6 +215,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <div id="enexFiles"></div>
   <label class="toggle" style="margin-top:8px"><input type="checkbox" id="en_tags" checked> Conserver les étiquettes Evernote</label>
   <label class="toggle" style="margin-top:8px"><input type="checkbox" id="en_files" checked> Envoyer PDF, audio et autres fichiers sur le Drive</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="en_repair"> Restaurer uniquement les dates de modification des notes déjà importées (aucun import)</label>
   <p class="hint" id="enexProg" style="font-size:13px;margin-top:10px"></p>
   <div class="rg"><button class="btn sec" id="enexCancel" onclick="enex.cancel()">Annuler</button><button class="btn" id="enexGo" onclick="enex.run()">Importer</button></div>
 </dialog>
@@ -222,8 +223,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
 <!-- ============ CORBEILLE ============ -->
 <section id="v-trash" class="hidden">
   <header class="top">
-    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Corbeille</h1>
+    <a class="back" href="#" onclick="go('list');return false"><span class="ico">‹</span><h1>Corbeille</h1></a>
     <button onclick="emptyTrash()">Vider</button>
   </header>
   <div class="view trash"><p class="sect" style="margin-top:0">Les notes sont supprimées définitivement après 30 jours.</p><div id="trashList"></div></div>
@@ -668,7 +668,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 /* =========================================================
    Société (dossier parent : /ventura/notes/ → ventura)
    ========================================================= */
-const APP_VERSION='1.33';const BUILD_DATE='18/09/2026 à 13:04';
+const APP_VERSION='1.37';const BUILD_DATE='18/09/2026 à 15:03';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Notes – Ventura',defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Notes – Kidebouchetou.com',defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -697,6 +697,7 @@ const store={
   put:(st,v)=>new Promise((res,rej)=>{const t=db.transaction(st,'readwrite');t.objectStore(st).put(v);t.oncomplete=res;t.onerror=e=>rej(e.target.error)}),
   del:(st,k)=>new Promise((res,rej)=>{const t=db.transaction(st,'readwrite');t.objectStore(st).delete(k);t.oncomplete=res;t.onerror=e=>rej(e.target.error)}),
 };
+const revOf=n=>n.rev||n.updatedAt||0;const bump=n=>{n.rev=Date.now()};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtDT=ts=>ts?new Date(ts).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'';
@@ -718,11 +719,12 @@ function allTags(){const s=new Set();live().forEach(n=>(n.tags||[]).forEach(t=>s
 function filterKey(){return document.getElementById('search').value+'|'+[...filterNbs].join(',')+'|'+[...filterTags].join(',')+'|'+onlyRem+'|'+sortMode}
 function renderList(){if(renderList._q!==filterKey()){listLimit=200;renderList._q=filterKey()}
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const nbSorted=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const useNb={};live().forEach(n=>{if(n.notebookId)useNb[n.notebookId]=(useNb[n.notebookId]||0)+1});
+  const nbSorted=notebooks.slice().sort((a,b)=>(useNb[b.id]||0)-(useNb[a.id]||0)||a.name.localeCompare(b.name));
   document.getElementById('chipsNb').innerHTML=`<button class="${!filterNbs.size&&!onlyRem?'on':''}" onclick="filterNbs.clear();onlyRem=false;renderList()">Tout</button>`+
     `<button class="${onlyRem?'on':''}" onclick="onlyRem=!onlyRem;renderList()">⏰ Rappels</button>`+
     nbSorted.map(n=>`<button class="${filterNbs.has(n.id)?'on':''}" onclick="toggleSet(filterNbs,'${n.id}')">${esc(n.name)}</button>`).join('');
-  const tags=allTags();document.getElementById('chipsTag').innerHTML=tags.map(t=>`<button class="tag ${filterTags.has(t)?'on':''}" onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('');
+  const useTag={};live().forEach(n=>(n.tags||[]).forEach(x=>useTag[x]=(useTag[x]||0)+1));const tags=Object.keys(useTag).sort((a,b)=>useTag[b]-useTag[a]||a.localeCompare(b));document.getElementById('chipsTag').innerHTML=tags.map(t=>`<button class="tag ${filterTags.has(t)?'on':''}" onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('');
   const fb=document.getElementById('fbNb');fb.classList.toggle('on',!!filterNbs.size);fb.innerHTML='⚲'+(filterNbs.size?`<span class="cnt">${filterNbs.size}</span>`:'');
   const ft=document.getElementById('fbTag');ft.classList.toggle('on',!!filterTags.size);ft.innerHTML='⚲'+(filterTags.size?`<span class="cnt">${filterTags.size}</span>`:'');
   document.getElementById('activeFilters').innerHTML=(filterNbs.size||filterTags.size||onlyRem||sortMode!=='updated')?`<div class="af">${onlyRem?'<span>⏰ Rappels<b onclick="onlyRem=false;renderList()">×</b></span>':''}${[...filterNbs].map(id=>`<span>${esc(nbName(id))}<b onclick="toggleSet(filterNbs,'${id}')">×</b></span>`).join('')}${[...filterTags].map(t=>`<span>#${esc(t)}<b onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')">×</b></span>`).join('')}${sortMode!=='updated'?`<span>⇅ ${SORTS[sortMode].split(' (')[0]}<b onclick="setSort('updated')">×</b></span>`:''}</div>`:'';
@@ -781,10 +783,10 @@ function renderPin(){f_pin.classList.toggle('on',!!cur.pinned);f_remdone.classLi
 function togglePin(){cur.pinned=!cur.pinned;renderPin();mark()}
 function toggleRemDone(){cur.remDone=!cur.remDone;renderPin();mark()}
 async function save(silent){readEditor();if(!cur.title&&!cur.body.trim()&&!cur.photos.length&&!(cur.files||[]).length)return false;
-  cur.updatedAt=Date.now();await store.put('notes',cur);const i=notes.findIndex(n=>n.id===cur.id);if(i>=0)notes[i]=JSON.parse(JSON.stringify(cur));else notes.push(JSON.parse(JSON.stringify(cur)));
+  cur.updatedAt=Date.now();cur.rev=cur.updatedAt;await store.put('notes',cur);const i=notes.findIndex(n=>n.id===cur.id);if(i>=0)notes[i]=JSON.parse(JSON.stringify(cur));else notes.push(JSON.parse(JSON.stringify(cur)));
   dirty=false;sync.schedule();if(!silent)toast('Note enregistrée');return true}
 async function closeEditor(){if(dirty)await save(true);go('list')}
-async function trashCurrent(){if(!confirm('Mettre cette note à la corbeille ?'))return;readEditor();cur.deletedAt=Date.now();await save(true);toast('Note mise à la corbeille');go('list')}
+async function trashCurrent(){if(!confirm('Mettre cette note à la corbeille ?'))return;readEditor();cur.deletedAt=Date.now();bump(cur);await store.put('notes',cur);const i=notes.findIndex(n=>n.id===cur.id);if(i>=0)notes[i]=JSON.parse(JSON.stringify(cur));dirty=false;sync.schedule();toast('Note mise à la corbeille');go('list')}
 setInterval(()=>{if(cur&&dirty&&!document.getElementById('v-edit').classList.contains('hidden'))save(true)},4000);
 window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
 
@@ -884,7 +886,7 @@ const uploader={progress:{},running:false,stop:'',
             const id=await sync.uploadYouTube({snippet:{title,description:[settings.name,n.title,f.cap].filter(Boolean).join('\n')},status:{privacyStatus:'unlisted',selfDeclaredMadeForKids:false}},blob,f.mime,prog);f.ytId=id;f.link='https://youtu.be/'+id}
           else{await sync.ensureFolder();await sync.ensureAttachFolder();const id=await sync.uploadResumableDrive(f.name,blob,f.mime,sync.attachFolderId,prog);
             await sync.api(`drive/v3/files/${id}/permissions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'anyone',role:'reader'})});f.driveId=id;f.link=`https://drive.google.com/file/d/${id}/view`}
-          f.status='done';await bdb.del(f.id);n.updatedAt=Date.now();await store.put('notes',n);if(cur&&cur.id===n.id&&cur!==n){const cf=cur.files.find(x=>x.id===f.id);if(cf)Object.assign(cf,f)}sync.schedule();
+          f.status='done';await bdb.del(f.id);bump(n);await store.put('notes',n);if(cur&&cur.id===n.id&&cur!==n){const cf=cur.files.find(x=>x.id===f.id);if(cf)Object.assign(cf,f)}sync.schedule();
         }catch(e){console.warn('envoi',e);if(e.message==='quota'){f.status='quota';this.stop='quota';break}if(e.message==='scope'){f.status='auth'}else if(e.message==='noauth'){f.status='pending';break}else f.status='error'}
         if(cur&&cur.id===n.id)renderFiles()}}}
     finally{this.running=false}}};
@@ -913,10 +915,11 @@ function renderReportChooser(){const q=(dlgRepSearch.value||'').toLowerCase();co
   const rows=repCache.filter(r=>!q||(repLabel(r)+' '+(r.obj||'')).toLowerCase().includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50);
   el.innerHTML=rows.length?rows.map(r=>`<button class="chooser ${(cur.reportIds||[]).includes(r.id)?'on':''}" onclick="toggleRepLink('${r.id}')"><b>${esc(repLabel(r))}</b><span>${repDate(r)}${r.obj?' · '+esc(r.obj):''}</span></button>`).join(''):'<p class="hint">Aucun rapport sur ce téléphone.</p>'}
 async function writeBackRep(repId,add){const r=repCache.find(x=>x.id===repId);if(!r)return;r.noteIds=r.noteIds||[];const i=r.noteIds.indexOf(cur.id);
-  if(add&&i<0)r.noteIds.push(cur.id);else if(!add&&i>=0)r.noteIds.splice(i,1);else return;r.updatedAt=Date.now();await repDb.put(r)}
+  if(add&&i<0)r.noteIds.push(cur.id);else if(!add&&i>=0)r.noteIds.splice(i,1);else return;r.rev=Date.now();await repDb.put(r)}
+async function saveLinkOnly(){readEditor();bump(cur);await store.put('notes',cur);const i=notes.findIndex(n=>n.id===cur.id);if(i>=0)notes[i]=JSON.parse(JSON.stringify(cur));else notes.push(JSON.parse(JSON.stringify(cur)));sync.schedule()}
 async function toggleRepLink(id){cur.reportIds=cur.reportIds||[];const i=cur.reportIds.indexOf(id);if(i>=0)cur.reportIds.splice(i,1);else cur.reportIds.push(id);
-  await writeBackRep(id,i<0);mark();await save(true);renderReportChooser();renderLinkedReports()}
-async function unlinkReport(id){cur.reportIds=(cur.reportIds||[]).filter(x=>x!==id);await writeBackRep(id,false);mark();await save(true);renderLinkedReports()}
+  await writeBackRep(id,i<0);await saveLinkOnly();renderReportChooser();renderLinkedReports()}
+async function unlinkReport(id){cur.reportIds=(cur.reportIds||[]).filter(x=>x!==id);await writeBackRep(id,false);await saveLinkOnly();renderLinkedReports()}
 function openCreate(){readEditor();cr_obj.disabled=!cur.title;cr_text.disabled=!(cur.body||'').trim();cr_photos.disabled=!(cur.photos||[]).length;cr_videos.disabled=!(cur.files||[]).some(f=>f.kind==='video');cr_files.disabled=!(cur.files||[]).some(f=>f.kind!=='video');dlgCreate.showModal()}
 async function createReport(){readEditor();await save(true);repCache=await repDb.all();
   const today=new Date();const y=today.getFullYear();const num=`${y}-${String(repCache.filter(r=>(r.num||'').startsWith(y+'-')).length+1).padStart(3,'0')}`;
@@ -927,7 +930,7 @@ async function createReport(){readEditor();await save(true);repCache=await repDb
   let skipped=0;
   if(cr_videos.checked&&!cr_videos.disabled)for(const f of (cur.files||[]).filter(f=>f.kind==='video')){if(!f.link){skipped++;continue}r.videos.push({id:uid(),name:f.name,mime:f.mime,size:f.size,dur:f.dur,thumb:f.thumb,tw:f.tw,th:f.th,cap:f.cap,ytId:f.ytId,link:f.link,status:'done'})}
   if(cr_files.checked&&!cr_files.disabled)for(const f of (cur.files||[]).filter(f=>f.kind!=='video')){if(!f.link){skipped++;continue}r.files.push({id:uid(),name:f.name,mime:f.mime,size:f.size,kind:f.kind,dur:f.dur,cap:f.cap,driveId:f.driveId,link:f.link,status:'done',fromNote:cur.id})}
-  await repDb.put(r);cur.reportIds=cur.reportIds||[];cur.reportIds.push(r.id);await save(true);dlgCreate.close();
+  r.rev=Date.now();await repDb.put(r);cur.reportIds=cur.reportIds||[];cur.reportIds.push(r.id);await saveLinkOnly();dlgCreate.close();
   if(skipped)alert(`${skipped} fichier(s) pas encore envoyé(s) n'ont pas été repris.`);
   location.href='../#rapport='+r.id}
 
@@ -982,8 +985,8 @@ const enex={files:[],cancelled:false,
       let s;while((s=buf.indexOf('<note>'))>=0||(s=buf.indexOf('<note '))>=0){const e=buf.indexOf('</note>',s);if(e<0)break;yield buf.slice(s,e+7);buf=buf.slice(e+7)}
       if(off>=file.size){const s2=Math.max(buf.indexOf('<note>'),buf.indexOf('<note '));if(s2<0||buf.indexOf('</note>',s2)<0)break}
       if(buf.length>64*1024*1024&&buf.indexOf('<note')<0)buf=buf.slice(-1024)}},
-  async run(){enexGo.disabled=true;enexCancel.textContent='Arrêter';const keepTags=en_tags.checked,keepFiles=en_files.checked;let total=0,imported=0,skipped=0,photos=0,att=0;
-    const existing=new Set(notes.map(n=>n.evernoteKey).filter(Boolean));
+  async run(){enexGo.disabled=true;enexCancel.textContent='Arrêter';const keepTags=en_tags.checked,keepFiles=en_files.checked,repair=en_repair.checked;let total=0,imported=0,skipped=0,photos=0,att=0,repaired=0;
+    const existing=new Set(notes.map(n=>n.evernoteKey).filter(Boolean));const byKey={};notes.forEach(n=>{if(n.evernoteKey)byKey[n.evernoteKey]=n});
     for(const [i,f] of this.files.entries()){if(this.cancelled)break;
       const nbNameIn=(document.querySelector(`#enexFiles input[data-i="${i}"]`).value||'Evernote').trim();
       let nb=notebooks.find(n=>n.name.toLowerCase()===nbNameIn.toLowerCase());if(!nb){nb={id:uid(),name:nbNameIn,updatedAt:Date.now()};await store.put('notebooks',nb);notebooks.push(nb)}
@@ -992,12 +995,14 @@ const enex={files:[],cancelled:false,
         let nn;try{const x=p.parseFromString('<?xml version="1.0" encoding="UTF-8"?><en-export>'+block+'</en-export>','text/xml');nn=x.getElementsByTagName('note')[0];if(!nn||x.getElementsByTagName('parsererror').length)throw 0}catch(e){skipped++;continue}
         const g=tag=>{const e=nn.getElementsByTagName(tag)[0];return e?e.textContent:''};
         const title=g('title').trim();const created=enDate(g('created')),updated=enDate(g('updated'))||created;
-        const key=md5(new TextEncoder().encode(title+'|'+g('created')));if(existing.has(key)){skipped++;continue}
+        const key=md5(new TextEncoder().encode(title+'|'+g('created')));
+        if(repair){const ex=byKey[key];if(ex&&ex.updatedAt!==updated){ex.updatedAt=updated;bump(ex);await store.put('notes',ex);repaired++}else skipped++;continue}
+        if(existing.has(key)){skipped++;continue}
         // ressources
         const res={};for(const r of nn.getElementsByTagName('resource')){const dataEl=r.getElementsByTagName('data')[0];if(!dataEl)continue;let u8;try{u8=b64ToU8(dataEl.textContent)}catch(e){continue}
           const mime=(r.getElementsByTagName('mime')[0]||{}).textContent||'application/octet-stream';const fn=(r.getElementsByTagName('file-name')[0]||{}).textContent||'';
           const h=u8.length<40*1024*1024?md5(u8):'big'+Object.keys(res).length;res[h]={u8,mime,name:fn,used:false}}
-        const note={id:uid(),createdAt:created,updatedAt:updated,title,body:'',notebookId:nb.id,tags:[],pinned:false,reminder:'',remDone:false,photos:[],files:[],reportIds:[],deletedAt:null,evernoteKey:key};
+        const note={id:uid(),createdAt:created,updatedAt:updated,rev:updated,title,body:'',notebookId:nb.id,tags:[],pinned:false,reminder:'',remDone:false,photos:[],files:[],reportIds:[],deletedAt:null,evernoteKey:key};
         if(keepTags)note.tags=[...nn.getElementsByTagName('tag')].map(e=>e.textContent.trim().toLowerCase()).filter(Boolean);
         const rem=nn.getElementsByTagName('reminder-time')[0];if(rem){const d=new Date(enDate(rem.textContent));note.reminder=d.toISOString().slice(0,16);note.remDone=!!nn.getElementsByTagName('reminder-done-time')[0]}
         const pending=[];// ressources à traiter après le texte
@@ -1013,7 +1018,7 @@ const enex={files:[],cancelled:false,
         await store.put('notes',note);notes.push(note);existing.add(key);imported++;
       }
     }
-    enexProg.textContent=`${this.cancelled?'Arrêté':'Terminé'} : ${imported} note(s) importée(s) sur ${total}${skipped?`, ${skipped} ignorée(s) (vides ou déjà importées)`:''}, ${photos} photo(s), ${att} pièce(s) jointe(s) à envoyer.`;
+    enexProg.textContent=repair?`${this.cancelled?'Arrêté':'Terminé'} : ${repaired} date(s) de modification restaurée(s) sur ${total} note(s) lues.`:`${this.cancelled?'Arrêté':'Terminé'} : ${imported} note(s) importée(s) sur ${total}${skipped?`, ${skipped} ignorée(s) (vides ou déjà importées)`:''}, ${photos} photo(s), ${att} pièce(s) jointe(s) à envoyer.`;
     enexCancel.textContent='Fermer';enexGo.classList.add('hidden');setTimeout(()=>enexGo.classList.remove('hidden'),0);enexGo.disabled=true;
     renderNotebooks();sync.schedule();setTimeout(()=>uploader.run(),3000);
   }
@@ -1023,17 +1028,17 @@ const enex={files:[],cancelled:false,
 let editingNb=null,nbFromEditor=false;
 function renderNotebooks(){const el=document.getElementById('nbList');
   if(!notebooks.length){el.innerHTML='<div class="empty"><h2>Aucun carnet</h2><p>Les carnets regroupent vos notes par thème (chantiers, fournisseurs, idées…).</p></div>';return}
-  el.innerHTML=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(n=>{const c=live().filter(x=>x.notebookId===n.id).length;return `<div class="nbrow"><div class="n"><b>${esc(n.name)}</b><span>${c} note${c>1?'s':''}</span></div><button onclick="editNotebook('${n.id}')">Renommer</button><button class="del" onclick="deleteNotebook('${n.id}')">×</button></div>`}).join('')}
+  el.innerHTML=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(n=>{const c=live().filter(x=>x.notebookId===n.id).length;return `<div class="nbrow"><button class="n" onclick="filterNbs.clear();filterNbs.add('${n.id}');onlyRem=false;go('list')" style="text-align:left"><b>${esc(n.name)}</b><span>${c} note${c>1?'s':''} · voir</span></button><button onclick="editNotebook('${n.id}')">Renommer</button><button class="del" onclick="deleteNotebook('${n.id}')">×</button></div>`}).join('')}
 function editNotebook(id,fromEditor){nbFromEditor=!!fromEditor;editingNb=id?notebooks.find(n=>n.id===id):null;dlgNbTitle.textContent=editingNb?'Renommer le carnet':'Nouveau carnet';nb_name.value=editingNb?editingNb.name:'';dlgNb.showModal();setTimeout(()=>nb_name.focus(),50)}
 async function saveNotebook(){const name=nb_name.value.trim();if(!name){nb_name.focus();return}const n=editingNb||{id:uid()};n.name=name;n.updatedAt=Date.now();await store.put('notebooks',n);if(!editingNb)notebooks.push(n);dlgNb.close();sync.schedule();
   if(nbFromEditor){cur.notebookId=n.id;fillEditor();mark()}else renderNotebooks();toast('Carnet enregistré')}
 async function deleteNotebook(id){if(!confirm('Supprimer ce carnet ? Les notes qu\'il contient sont conservées (sans carnet).'))return;await store.del('notebooks',id);notebooks=notebooks.filter(n=>n.id!==id);
-  for(const n of notes.filter(x=>x.notebookId===id)){n.notebookId='';n.updatedAt=Date.now();await store.put('notes',n)}sync.markDeleted('nb',id);sync.schedule();renderNotebooks()}
+  for(const n of notes.filter(x=>x.notebookId===id)){n.notebookId='';bump(n);await store.put('notes',n)}sync.markDeleted('nb',id);sync.schedule();renderNotebooks()}
 
 /* ================= corbeille ================= */
 function renderTrash(){const rows=notes.filter(n=>n.deletedAt).sort((a,b)=>b.deletedAt-a.deletedAt);const el=document.getElementById('trashList');
   el.innerHTML=rows.length?rows.map(n=>noteCard(n,'restoreAsk')).join(''):'<div class="empty"><h2>Corbeille vide</h2></div>'}
-async function restoreAsk(id){const n=notes.find(x=>x.id===id);if(confirm('Restaurer cette note ?')){n.deletedAt=null;n.updatedAt=Date.now();await store.put('notes',n);sync.schedule();toast('Note restaurée');renderTrash()}
+async function restoreAsk(id){const n=notes.find(x=>x.id===id);if(confirm('Restaurer cette note ?')){n.deletedAt=null;bump(n);await store.put('notes',n);sync.schedule();toast('Note restaurée');renderTrash()}
   else if(confirm('Supprimer définitivement ?')){await purge(n);renderTrash()}}
 async function purge(n){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id);sync.markDeleted('n',n.id);sync.schedule()}
 async function emptyTrash(){const rows=notes.filter(n=>n.deletedAt);if(!rows.length||!confirm(`Supprimer définitivement ${rows.length} note(s) ?`))return;for(const n of rows)await purge(n);renderTrash()}
@@ -1140,10 +1145,10 @@ const sync={
     try{await this.ensureFolder();const p=this.pending();const files=await this.list();const byName=Object.fromEntries(files.map(f=>[f.name,f]));
       for(const id of Object.keys(p.n)){const f=byName['n_'+id+'.json'];if(f)await this.remove(f.id);delete p.n[id]}
       for(const n of notes.slice()){try{const f=byName['n_'+n.id+'.json'];
-        if(!f){if(n.driveId){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id)}else{n.driveId=await this.uploadJson('n_'+n.id+'.json',n,null,{updatedAt:String(n.updatedAt)});await store.put('notes',n)}continue}
+        if(!f){if(n.driveId){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id)}else{n.driveId=await this.uploadJson('n_'+n.id+'.json',n,null,{updatedAt:String(revOf(n))});await store.put('notes',n)}continue}
         const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(n.updatedAt>ru){await this.uploadJson('n_'+n.id+'.json',n,f.id,{updatedAt:String(n.updatedAt)});n.driveId=f.id;await store.put('notes',n)}
-        else if(n.updatedAt<ru){const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes[notes.findIndex(x=>x.id===n.id)]=nn;if(cur&&cur.id===nn.id&&!dirty)cur=JSON.parse(JSON.stringify(nn))}
+        if(revOf(n)>ru){await this.uploadJson('n_'+n.id+'.json',n,f.id,{updatedAt:String(revOf(n))});n.driveId=f.id;await store.put('notes',n)}
+        else if(revOf(n)<ru){const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes[notes.findIndex(x=>x.id===n.id)]=nn;if(cur&&cur.id===nn.id&&!dirty)cur=JSON.parse(JSON.stringify(nn))}
         else if(!n.driveId){n.driveId=f.id;await store.put('notes',n)}}catch(e){if(!/404/.test(e.message))throw e}}
       for(const f of files){if(!f.name.startsWith('n_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);if(!notes.some(n=>n.id===id)&&!p.n[id]){try{const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes.push(nn)}catch(e){if(!/404/.test(e.message))throw e}}}
       // carnets : fusion

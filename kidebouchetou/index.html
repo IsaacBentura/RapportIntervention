@@ -34,6 +34,9 @@ h1,h2,h3{margin:0;font-weight:600}
 .top button{color:#fff;font-size:15px;padding:6px 8px;border-radius:8px;min-height:40px}
 .top button:active{background:rgba(255,255,255,.15)}
 .top .ico{font-size:22px;line-height:1;width:40px}
+.top .back{display:flex;align-items:center;gap:4px;flex:1;min-width:0;color:#fff;text-decoration:none;border-radius:8px;padding:4px 6px 4px 0}
+.top .back:active{background:rgba(255,255,255,.15)}.top .back .ico{display:inline-flex;align-items:center;justify-content:center;width:34px;height:36px;flex:none}
+.top .back h1{flex:1;min-width:0}
 
 /* ---- views ---- */
 .view{max-width:760px;margin:0 auto;padding:16px 16px calc(96px + var(--safe-b))}
@@ -206,8 +209,7 @@ dialog h3{margin-bottom:12px}
 <!-- ============ ÉDITEUR ============ -->
 <section id="v-edit" class="hidden">
   <header class="top">
-    <button class="ico" onclick="closeEditor()" aria-label="Retour">‹</button>
-    <h1 id="editTitle">Nouveau rapport</h1>
+    <a class="back" href="#" onclick="closeEditor();return false"><span class="ico">‹</span><h1 id="editTitle">Nouveau rapport</h1></a>
     <button onclick="deleteCurrent()" id="btnDel">Supprimer</button>
   </header>
   <div class="view">
@@ -284,8 +286,7 @@ dialog h3{margin-bottom:12px}
 <!-- ============ APERÇU ============ -->
 <section id="v-preview" class="hidden">
   <header class="top">
-    <button class="ico" onclick="go('edit')" aria-label="Retour">‹</button>
-    <h1>Aperçu</h1>
+    <a class="back" href="#" onclick="go('edit');return false"><span class="ico">‹</span><h1>Aperçu</h1></a>
   </header>
   <div class="view"><div class="pv" id="pv"></div></div>
   <div class="actions"><div class="in">
@@ -297,8 +298,7 @@ dialog h3{margin-bottom:12px}
 <!-- ============ CLIENTS ============ -->
 <section id="v-clients" class="hidden">
   <header class="top">
-    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Clients</h1>
+    <a class="back" href="#" onclick="go('list');return false"><span class="ico">‹</span><h1>Clients</h1></a>
     <button onclick="editClient()">Ajouter</button>
   </header>
   <div class="view" id="clientList"></div>
@@ -307,8 +307,7 @@ dialog h3{margin-bottom:12px}
 <!-- ============ RÉGLAGES ============ -->
 <section id="v-settings" class="hidden">
   <header class="top">
-    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Réglages</h1>
+    <a class="back" href="#" onclick="go('list');return false"><span class="ico">‹</span><h1>Réglages</h1></a>
   </header>
   <div class="view">
     <div class="sect">En-tête des rapports</div>
@@ -793,7 +792,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.33';const BUILD_DATE='18/09/2026 à 13:04';
+const APP_VERSION='1.37';const BUILD_DATE='18/09/2026 à 15:03';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -849,6 +848,7 @@ if(CAP){
     loadSettings:async()=>JSON.parse(localStorage.getItem(LS('settings'))||'{}'),saveSettings:async s=>localStorage.setItem(LS('settings'),JSON.stringify(s)),
   };
 }
+const revOf=n=>n.rev||n.updatedAt||0;const bump=n=>{n.rev=Date.now()};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 const GOOGLE_CLIENT_SECRET='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';
@@ -902,7 +902,7 @@ function mark(){dirty=true}
 async function save(silent){
   readEditor();
   if(!cur.addr&&!cur.text&&!cur.photos.length&&!(cur.videos||[]).length)return false;
-  cur.updatedAt=Date.now();await store.putReport(cur);sync.schedule();
+  cur.updatedAt=Date.now();cur.rev=cur.updatedAt;await store.putReport(cur);sync.schedule();
   const i=reports.findIndex(r=>r.id===cur.id);if(i>=0)reports[i]=cur;else reports.push(cur);
   dirty=false;if(!silent)toast('Rapport enregistré');return true;
 }
@@ -1055,7 +1055,7 @@ const videoUploader={progress:{},running:false,stop:'',
             const meta={snippet:{title,description:[settings.name,r.addr,r.obj,v.cap].filter(Boolean).join('\n')},status:{privacyStatus:'unlisted',selfDeclaredMadeForKids:false}};
             const id=await sync.uploadYouTube(meta,blob,v.mime,p=>{this.progress[v.id]=p;if(cur&&cur.id===r.id)renderVideos()});
             v.ytId=id;v.link=`https://youtu.be/${id}`;v.status='done';await vdb.del(v.id);
-            r.updatedAt=Date.now();await store.putReport(r);
+            bump(r);await store.putReport(r);
             if(cur&&cur.id===r.id&&cur!==r){const cv=cur.videos.find(x=>x.id===v.id);if(cv)Object.assign(cv,v)}
             sync.schedule();
           }catch(e){console.warn('upload vidéo',e);
@@ -1094,10 +1094,11 @@ function renderNoteChooser(){const q=(dlgNotesSearch.value||'').toLowerCase();co
   const rows=notesCache.filter(n=>!q||(noteTitle(n)+' '+n.body+' '+(n.tags||[]).join(' ')).toLowerCase().includes(q)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50);
   el.innerHTML=rows.length?rows.map(n=>`<button class="chooser ${(cur.noteIds||[]).includes(n.id)?'on':''}" onclick="toggleLink('${n.id}')"><b>${esc(noteTitle(n))}</b><span>${new Date(n.updatedAt).toLocaleDateString('fr-FR')}${(n.tags||[]).length?' · '+n.tags.map(t=>'#'+t).join(' '):''}</span></button>`).join(''):'<p class="hint">Aucune note. Créez-en dans la page Notes.</p>'}
 async function toggleLink(id){cur.noteIds=cur.noteIds||[];const i=cur.noteIds.indexOf(id);if(i>=0)cur.noteIds.splice(i,1);else cur.noteIds.push(id);
-  await writeBackLink(id,i<0);mark();await save(true);renderNoteChooser();renderLinkedNotes()}
-async function unlinkNote(id){cur.noteIds=(cur.noteIds||[]).filter(x=>x!==id);await writeBackLink(id,false);mark();await save(true);renderLinkedNotes()}
+  await writeBackLink(id,i<0);await saveLinkOnly();renderNoteChooser();renderLinkedNotes()}
+async function unlinkNote(id){cur.noteIds=(cur.noteIds||[]).filter(x=>x!==id);await writeBackLink(id,false);await saveLinkOnly();renderLinkedNotes()}
 async function writeBackLink(noteId,add){const n=notesCache.find(x=>x.id===noteId);if(!n)return;n.reportIds=n.reportIds||[];const i=n.reportIds.indexOf(cur.id);
-  if(add&&i<0)n.reportIds.push(cur.id);else if(!add&&i>=0)n.reportIds.splice(i,1);else return;n.updatedAt=Date.now();await notesDb.put(n)}
+  if(add&&i<0)n.reportIds.push(cur.id);else if(!add&&i>=0)n.reportIds.splice(i,1);else return;n.rev=Date.now();await notesDb.put(n)}
+async function saveLinkOnly(){readEditor();bump(cur);await store.putReport(cur);const i=reports.findIndex(r=>r.id===cur.id);if(i>=0)reports[i]=cur;else reports.push(cur);sync.schedule()}
 let takeId=null;
 function openTake(id){takeId=id;const n=notesCache.find(x=>x.id===id);takeTitle.textContent=noteTitle(n);
   tk_photos.disabled=!(n.photos||[]).length;tk_videos.disabled=!(n.files||[]).some(f=>f.kind==='video');tk_files.disabled=!(n.files||[]).some(f=>f.kind!=='video');tk_text.disabled=!(n.body||'').trim();dlgTake.showModal()}
@@ -1468,10 +1469,10 @@ const sync={
       for(const r of reports.slice()){try{
         const f=byName['r_'+r.id+'.json'];
         if(!f){ if(r.driveId){await store.delReport(r.id);reports=reports.filter(x=>x.id!==r.id);changed=true} // supprimé par un collègue
-                else{r.driveId=await this.uploadJson('r_'+r.id+'.json',r,this.folderId,null,{updatedAt:String(r.updatedAt)});await store.putReport(r)} continue }
+                else{r.driveId=await this.uploadJson('r_'+r.id+'.json',r,this.folderId,null,{updatedAt:String(revOf(r))});await store.putReport(r)} continue }
         const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(r.updatedAt>ru){await this.uploadJson('r_'+r.id+'.json',r,null,f.id,{updatedAt:String(r.updatedAt)});r.driveId=f.id;await store.putReport(r)}
-        else if(r.updatedAt<ru){const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports[reports.findIndex(x=>x.id===r.id)]=nr;if(cur&&cur.id===nr.id&&!dirty){cur=JSON.parse(JSON.stringify(nr))}changed=true}
+        if(revOf(r)>ru){await this.uploadJson('r_'+r.id+'.json',r,null,f.id,{updatedAt:String(revOf(r))});r.driveId=f.id;await store.putReport(r)}
+        else if(revOf(r)<ru){const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports[reports.findIndex(x=>x.id===r.id)]=nr;if(cur&&cur.id===nr.id&&!dirty){cur=JSON.parse(JSON.stringify(nr))}changed=true}
         else if(!r.driveId){r.driveId=f.id;await store.putReport(r)}
       }catch(e){if(!/404/.test(e.message))throw e}}
       // rapports distants inconnus
