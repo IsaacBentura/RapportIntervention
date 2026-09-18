@@ -151,6 +151,19 @@ details.help li{margin:3px 0}
 .updbar span{flex:1;font-size:14px}
 .updbar button{background:#fff;color:var(--ink);font-weight:600;padding:8px 14px;border-radius:8px}
 .updbar .later{background:none;color:#fff;font-weight:400;padding:8px}
+.toggle{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);min-height:48px;width:100%;text-align:left}
+.toggle input{width:20px;height:20px}
+.lnk{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.lnk .n{flex:1;min-width:0}.lnk .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lnk .n span{font-size:12px;color:var(--ink3)}
+.lnk button{color:var(--blue2);font-weight:600;font-size:13px;padding:6px 8px;border-radius:8px}.lnk button.del{color:var(--warn)}
+.chooser{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:6px}
+.chooser b{display:block;font-size:14px}.chooser span{font-size:12px;color:var(--ink3)}.chooser.on{border-color:var(--ok);background:#f1f9f4}
+.file{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.file .ic{width:44px;height:44px;border-radius:8px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.file .n{flex:1;min-width:0}.file .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.file .n span{font-size:12px;color:var(--ink3)}
+.file .n input{width:100%;border:0;border-bottom:1px dashed var(--line);padding:2px 0;font-size:13px;outline:none;margin-top:2px}
+.file button.x{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);color:var(--ink2);font-size:18px;flex:none}
+.file button.pl{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-size:15px;flex:none}
 /* ---- misc ---- */
 .toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
@@ -177,6 +190,7 @@ dialog h3{margin-bottom:12px}
   <header class="top">
     <h1 id="appTitle">Rapports d'intervention</h1>
     <button class="ico" onclick="sync.full(true)" id="btnSync" title="Synchroniser">↻</button>
+    <button onclick="location.href='./notes/'" title="Notes">Notes</button>
     <button onclick="go('clients')" title="Clients">Clients</button>
     <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
   </header>
@@ -240,6 +254,13 @@ dialog h3{margin-bottom:12px}
         <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''" id="galleryInput">
       </label>
     </div>
+
+    <div class="sect">Notes liées</div>
+    <div id="linkedNotes"></div>
+    <button class="addph" onclick="linkNoteDialog()">🔗 Lier une note…</button>
+
+    <div class="sect">Pièces jointes (audio, documents – reprises depuis une note)</div>
+    <div id="rfiles"></div>
 
     <div class="sect">Vidéos (publiées sur YouTube, lien cliquable dans le PDF)</div>
     <div class="photos" id="videos"></div>
@@ -350,6 +371,21 @@ dialog h3{margin-bottom:12px}
   </div>
 </dialog>
 
+<dialog id="dlgNotes">
+  <h3>Lier une note</h3>
+  <input class="search" id="dlgNotesSearch" placeholder="Rechercher…" oninput="renderNoteChooser()">
+  <div id="noteChooser" style="max-height:50vh;overflow:auto"></div>
+  <div class="rg"><button class="btn sec" onclick="dlgNotes.close()">Fermer</button></div>
+</dialog>
+<dialog id="dlgTake">
+  <h3>Reprendre depuis la note</h3>
+  <p class="hint" id="takeTitle" style="margin-top:0"></p>
+  <label class="toggle"><input type="checkbox" id="tk_text" checked> Texte (ajouté au compte rendu)</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_photos" checked> Photos</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_videos" checked> Vidéos YouTube</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_files" checked> Audio et documents</label>
+  <div class="rg"><button class="btn sec" onclick="dlgTake.close()">Annuler</button><button class="btn" onclick="takeFromNote()">Reprendre</button></div>
+</dialog>
 <div class="toast" id="toast"></div>
 <div class="updbar hidden" id="updbar"><span>Nouvelle version disponible</span><button class="later" onclick="updbar.classList.add('hidden')">Plus tard</button><button onclick="applyUpdate()">Mettre à jour</button></div>
 
@@ -757,7 +793,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.17';const BUILD_DATE='11/09/2026 à 13:06';
+const APP_VERSION='1.33';const BUILD_DATE='18/09/2026 à 13:04';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -847,15 +883,15 @@ function clientName(id){const c=clients.find(c=>c.id===id);return c?c.name:''}
 /* ================= éditeur ================= */
 function newReport(){
   const today=new Date();const iso=today.toISOString().slice(0,10);
-  cur={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:iso,num:nextNum(today),clientId:'',addr:'',obj:'',text:'',photos:[],videos:[]};
+  cur={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:iso,num:nextNum(today),clientId:'',addr:'',obj:'',text:'',photos:[],videos:[],files:[],noteIds:[]};
   fillEditor();go('edit');
 }
 function nextNum(d){const y=d.getFullYear();const n=reports.filter(r=>(r.num||'').startsWith(y+'-')).length+1;return `${y}-${String(n).padStart(3,'0')}`}
-function openReport(id){cur=JSON.parse(JSON.stringify(reports.find(r=>r.id===id)));cur.videos=cur.videos||[];fillEditor();go('edit')}
+function openReport(id){cur=JSON.parse(JSON.stringify(reports.find(r=>r.id===id)));cur.videos=cur.videos||[];cur.files=cur.files||[];cur.noteIds=cur.noteIds||[];fillEditor();go('edit')}
 function fillEditor(){
   document.getElementById('editTitle').textContent=cur.addr?cur.addr:'Nouveau rapport';
   f_date.value=cur.date||'';f_num.value=cur.num||'';f_addr.value=cur.addr||'';f_obj.value=cur.obj||'';f_text.value=cur.text||'';
-  fillClientSelect();f_client.value=cur.clientId||'';renderPhotos();renderVideos();setMode('txt');dirty=false;
+  fillClientSelect();f_client.value=cur.clientId||'';renderPhotos();renderVideos();renderRFiles();renderLinkedNotes();setMode('txt');dirty=false;
 }
 function fillClientSelect(){f_client.innerHTML='<option value="">— Aucun —</option>'+clients.sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'<option value="__new">＋ Nouveau client…</option>'}
 function clientPicked(){if(f_client.value==='__new'){f_client.value=cur.clientId||'';editClient(null,true);return}
@@ -1034,6 +1070,52 @@ const videoUploader={progress:{},running:false,stop:'',
 };
 window.addEventListener('online',()=>videoUploader.run());
 
+
+/* =========================================================
+   Lien note ↔ rapport. Les notes vivent dans la base de la page Notes
+   (IndexedDB « notes-<société> ») ; on la lit et on y écrit le lien retour.
+   ========================================================= */
+const notesDb={db:null,
+  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('notes-'+COMPANY_KEY,1);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('notes'))d.createObjectStore('notes',{keyPath:'id'});if(!d.objectStoreNames.contains('notebooks'))d.createObjectStore('notebooks',{keyPath:'id'})};
+    r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async all(){const d=await this.open();return new Promise(res=>{const r=d.transaction('notes').objectStore('notes').getAll();r.onsuccess=()=>res((r.result||[]).filter(n=>!n.deletedAt));r.onerror=()=>res([])})},
+  async put(n){const d=await this.open();return new Promise(res=>{const t=d.transaction('notes','readwrite');t.objectStore('notes').put(n);t.oncomplete=res;t.onerror=res})}};
+let notesCache=[];
+async function loadNotes(){notesCache=await notesDb.all();return notesCache}
+const noteTitle=n=>n.title||((n.body||'').split('\n').map(s=>s.trim()).find(Boolean)||'(sans titre)');
+async function renderLinkedNotes(){await loadNotes();const el=document.getElementById('linkedNotes');const ids=cur.noteIds||[];
+  // union avec les notes qui déclarent ce rapport
+  notesCache.forEach(n=>{if((n.reportIds||[]).includes(cur.id)&&!ids.includes(n.id))ids.push(n.id)});cur.noteIds=ids;
+  el.innerHTML=ids.map(id=>{const n=notesCache.find(x=>x.id===id);return `<div class="lnk"><div class="n"><b>${esc(n?noteTitle(n):'Note absente de ce téléphone')}</b><span>${n?new Date(n.updatedAt).toLocaleDateString('fr-FR')+' · '+(n.photos||[]).length+' photo(s) · '+(n.files||[]).length+' PJ':id}</span></div>
+    ${n?`<button onclick="openTake('${id}')">Reprendre</button><button onclick="location.href='./notes/#note=${id}'">Ouvrir</button>`:''}<button class="del" onclick="unlinkNote('${id}')">×</button></div>`}).join('')||'<p class="hint" style="margin:0 0 8px">Aucune note liée.</p>'}
+async function linkNoteDialog(){await loadNotes();dlgNotesSearch.value='';renderNoteChooser();dlgNotes.showModal()}
+function renderNoteChooser(){const q=(dlgNotesSearch.value||'').toLowerCase();const el=document.getElementById('noteChooser');
+  const rows=notesCache.filter(n=>!q||(noteTitle(n)+' '+n.body+' '+(n.tags||[]).join(' ')).toLowerCase().includes(q)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50);
+  el.innerHTML=rows.length?rows.map(n=>`<button class="chooser ${(cur.noteIds||[]).includes(n.id)?'on':''}" onclick="toggleLink('${n.id}')"><b>${esc(noteTitle(n))}</b><span>${new Date(n.updatedAt).toLocaleDateString('fr-FR')}${(n.tags||[]).length?' · '+n.tags.map(t=>'#'+t).join(' '):''}</span></button>`).join(''):'<p class="hint">Aucune note. Créez-en dans la page Notes.</p>'}
+async function toggleLink(id){cur.noteIds=cur.noteIds||[];const i=cur.noteIds.indexOf(id);if(i>=0)cur.noteIds.splice(i,1);else cur.noteIds.push(id);
+  await writeBackLink(id,i<0);mark();await save(true);renderNoteChooser();renderLinkedNotes()}
+async function unlinkNote(id){cur.noteIds=(cur.noteIds||[]).filter(x=>x!==id);await writeBackLink(id,false);mark();await save(true);renderLinkedNotes()}
+async function writeBackLink(noteId,add){const n=notesCache.find(x=>x.id===noteId);if(!n)return;n.reportIds=n.reportIds||[];const i=n.reportIds.indexOf(cur.id);
+  if(add&&i<0)n.reportIds.push(cur.id);else if(!add&&i>=0)n.reportIds.splice(i,1);else return;n.updatedAt=Date.now();await notesDb.put(n)}
+let takeId=null;
+function openTake(id){takeId=id;const n=notesCache.find(x=>x.id===id);takeTitle.textContent=noteTitle(n);
+  tk_photos.disabled=!(n.photos||[]).length;tk_videos.disabled=!(n.files||[]).some(f=>f.kind==='video');tk_files.disabled=!(n.files||[]).some(f=>f.kind!=='video');tk_text.disabled=!(n.body||'').trim();dlgTake.showModal()}
+async function takeFromNote(){const n=notesCache.find(x=>x.id===takeId);if(!n)return;let added=[];readEditor();
+  if(tk_text.checked&&!tk_text.disabled){const t=(n.title?n.title.toUpperCase()+'\n':'')+(n.body||'').trim();cur.text=(cur.text.trim()?cur.text.replace(/\s+$/,'')+'\n\n':'')+t;f_text.value=cur.text;added.push('texte')}
+  if(tk_photos.checked&&!tk_photos.disabled){let c=0;for(const p of n.photos||[]){if(!cur.photos.some(x=>x.data===p.data)){cur.photos.push(Object.assign({},p,{id:uid()}));c++}}if(c)added.push(c+' photo(s)')}
+  let skipped=0;
+  if(tk_videos.checked&&!tk_videos.disabled){let c=0;for(const f of (n.files||[]).filter(f=>f.kind==='video')){if(!f.link){skipped++;continue}if(!(cur.videos||[]).some(v=>v.link===f.link)){cur.videos.push({id:uid(),name:f.name,mime:f.mime,size:f.size,dur:f.dur,thumb:f.thumb,tw:f.tw,th:f.th,cap:f.cap,ytId:f.ytId,link:f.link,status:'done'});c++}}if(c)added.push(c+' vidéo(s)')}
+  if(tk_files.checked&&!tk_files.disabled){let c=0;cur.files=cur.files||[];for(const f of (n.files||[]).filter(f=>f.kind!=='video')){if(!f.link){skipped++;continue}if(!cur.files.some(x=>x.link===f.link)){cur.files.push({id:uid(),name:f.name,mime:f.mime,size:f.size,kind:f.kind,dur:f.dur,cap:f.cap,driveId:f.driveId,link:f.link,status:'done',fromNote:n.id});c++}}if(c)added.push(c+' pièce(s) jointe(s)')}
+  if(!(cur.noteIds||[]).includes(n.id)){cur.noteIds.push(n.id);await writeBackLink(n.id,true)}
+  dlgTake.close();renderPhotos();renderVideos();renderRFiles();renderLinkedNotes();mark();await save(true);
+  toast((added.length?'Repris : '+added.join(', '):'Rien à reprendre')+(skipped?` · ${skipped} fichier(s) pas encore envoyé(s), ignoré(s)`:''))}
+/* pièces jointes du rapport (liens Drive repris de notes) */
+const fmtSizeR=b=>b>1e6?Math.round(b/1e6)+' Mo':Math.round(b/1e3)+' Ko';
+function renderRFiles(){const el=document.getElementById('rfiles');const fs=cur.files||[];
+  el.innerHTML=fs.length?fs.map((f,i)=>`<div class="file"><div class="ic">${f.kind==='audio'?'🎙':/pdf/i.test(f.mime)?'📄':'📎'}</div><div class="n"><b>${esc(f.name)}</b><span>${f.kind==='audio'?'Audio':'Document'} · ${fmtSizeR(f.size||0)}${f.dur?' · '+fmtDur(f.dur):''}</span><input placeholder="Légende…" value="${esc(f.cap||'')}" oninput="cur.files[${i}].cap=this.value;mark()"></div>
+    <button class="pl" onclick="window.open('${f.link}','_blank')" title="Ouvrir">▶</button><button class="x" onclick="cur.files.splice(${i},1);renderRFiles();mark()">×</button></div>`).join(''):'<p class="hint" style="margin:0 0 8px">Aucune pièce jointe. Utilisez « Reprendre » sur une note liée.</p>'}
+
 /* ================= rendu HTML du corps ================= */
 function renderBody(text){let h='';
   for(const b of parse(text)){
@@ -1154,6 +1236,10 @@ async function exportPdf(){
       y+=ch+22;
     }
   }
+  const rfs=(r.files||[]);
+  if(rfs.length){if(y+40>H-BOT){doc.addPage();y=TOP}else y+=4;line('Pièces jointes',12,'bold',PINK);y+=2;
+    for(const f of rfs){need(13);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt((f.kind==='audio'?'Audio : ':'Document : ')+f.name+(f.dur?' ('+fmtDur(f.dur)+')':'')+(f.cap?' – '+f.cap:'')),CW)[0],ML,y+3.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...BLUE);doc.text(txt(f.link),ML,y+8);doc.link(ML,y,CW,10,{url:f.link});y+=12}}
   footer();
   const name=`Rapport_${(r.num||r.date||'').replace(/[^\w-]/g,'_')}_${(r.addr||'intervention').split(',')[0].replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,40)}.pdf`;
   const pdfBlob=doc.output('blob');sync.uploadPdf(name,pdfBlob);
@@ -1229,7 +1315,8 @@ async function importData(file){
   catch(e){alert("Stockage local indisponible. Les rapports ne pourront pas être conservés.\n\n"+e)}
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
-  renderList();if(!sync.handleRedirect())sync.boot();else sync.boot();setTimeout(()=>videoUploader.run(),3000);
+  renderList();if(!sync.handleRedirect())sync.boot();else sync.boot();const hm=location.hash.match(/^#rapport=(.+)$/);if(hm){history.replaceState(null,'',location.pathname);const r=reports.find(x=>x.id===hm[1]);if(r)openReport(r.id);else toast('Rapport introuvable sur ce téléphone (synchronisez)')}
+  if(location.hash==='#connexion'||location.hash==='#youtube'){history.replaceState(null,'',location.pathname);go('settings');if(location.hash==='#youtube')setTimeout(()=>document.getElementById('btnYt').scrollIntoView(),300)}setTimeout(()=>videoUploader.run(),3000);
   if('serviceWorker' in navigator&&location.protocol.startsWith('http'))setupUpdates();
 })();
 window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
@@ -1240,7 +1327,7 @@ async function setupUpdates(){
   try{swReg=await navigator.serviceWorker.register('./sw.js')}catch(e){return}
   if(swReg.waiting)offerUpdate();
   swReg.addEventListener('updatefound',()=>{const nw=swReg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)offerUpdate()})});
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload()});
+  const hadController=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadController||reloading)return;reloading=true;location.reload()});
   const check=()=>swReg.update().catch(()=>{});
   setInterval(check,30*60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});window.addEventListener('online',check);
 }

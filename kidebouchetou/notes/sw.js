@@ -1,5 +1,5 @@
 // Service worker : hors-ligne + mise à jour proposée à l'utilisateur.
-const CACHE='rapports-kidebouchetou-1-33';
+const CACHE='rapports-notes-kidebouchetou-1-33';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(u=>c.add(new Request(u,{cache:'reload'})).catch(()=>{})))))});
 self.addEventListener('message',e=>{if(e.data==='skipWaiting')self.skipWaiting()});

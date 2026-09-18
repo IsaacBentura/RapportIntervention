@@ -37,3 +37,34 @@ Quota Google : ~6 vidéos par jour pour toute l'équipe ; au-delà, les vidéos 
 et partent le lendemain. Activer « YouTube Data API v3 » dans le projet Google Cloud
 (https://console.cloud.google.com/apis/library/youtube.googleapis.com?project=882950350881)
 et ajouter la portée .../auth/youtube.upload dans l'écran de consentement OAuth.
+
+## Notes (lot 1) – /ventura/notes/ et /kidebouchetou/notes/
+Page séparée, accessible par le bouton « Notes » de l'app Rapports et installable comme icône à part.
+- Notes en texte libre (même mise en forme automatique que les rapports), titre, carnet, étiquettes,
+  épingle, rappel daté (badge et tri ; notification seulement si l'app est ouverte), photos compressées.
+- Tri (⇅ dans la barre) : mise à jour, création, titre, rappel ; épinglées toujours en haut. Filtres carnets et étiquettes multiples (OU) via les boutons ⚲ à gauche des puces (liste cochable avec recherche) ; badges des filtres actifs sous les puces.
+- Recherche plein texte, corbeille (purge automatique à 30 jours), export PDF (en-tête société partagé).
+- « Partager vers » Android : un texte ou un lien partagé depuis une autre app crée une note préremplie.
+- Drive : dossier « Notes – Société » à la racine, un fichier n_<id>.json par note + notebooks.json.
+  La connexion Google est celle de l'app Rapports (mêmes jetons) ; se connecter depuis Rapports ▸ Réglages.
+- Pièces jointes (lot 2) : enregistrement audio dans l'app (micro), documents (PDF, Word, Excel…),
+  vidéos. Audio et documents vont dans le sous-dossier « Pièces jointes » du dossier Notes du Drive
+  (lien public) ; les vidéos sur YouTube en non répertoriée (autorisation YouTube faite dans Rapports).
+  Le PDF de la note liste chaque pièce jointe avec son lien cliquable (vignette pour les vidéos).
+- « Partager vers » avec fichiers : photos, vidéos, audio, PDF… partagés depuis une autre app arrivent
+  dans une nouvelle note (le service worker reçoit le partage puis rouvre la page).
+- Lien note ↔ rapport : dans un rapport, section « Notes liées » (lier, ouvrir, reprendre à la carte :
+  texte, photos, vidéos, audio/documents) et section « Pièces jointes » (liens Drive repris de notes,
+  listés dans le PDF du rapport). Dans une note, section « Rapports liés » (lier, ouvrir) et
+  « Créer un rapport » depuis la note avec choix de ce qui est repris. Le lien est enregistré des deux
+  côtés ; chaque app synchronise son côté (un lien fait depuis Notes est poussé côté Rapports à la
+  prochaine ouverture de l'app Rapports sur ce téléphone). Le PDF du rapport ne mentionne pas les notes.
+
+## Import Evernote
+Notes ▸ Carnets ▸ « Importer depuis Evernote (.enex) ». Dans Evernote sur ordinateur : clic droit sur
+un carnet ▸ Exporter ▸ ENEX (un fichier par carnet ; le nom du fichier devient le nom du carnet,
+modifiable avant l'import). Conversion : titres → MAJUSCULES, listes → puces, cases cochées → coches,
+tableaux → une puce par ligne, liens conservés entre parenthèses ; images → photos compressées ;
+PDF/audio/autres → pièces jointes envoyées sur le Drive après l'import ; étiquettes, dates de création
+et rappels conservés. Une note déjà importée (même titre et date de création) est ignorée au réimport.
+Le fichier est lu en flux, note par note : des exports de plusieurs centaines de Mo (centaines de photos) passent sur PC. Le téléphone récupère les notes par la synchronisation. La liste affiche 200 notes puis « Afficher plus ».

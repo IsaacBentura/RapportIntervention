@@ -4,183 +4,113 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1e3a5f">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rapports d'intervention</title>
+<title>Notes</title>
 <style>
-:root{
-  --ink:#1b2733; --ink2:#4a5866; --ink3:#8a96a3;
-  --paper:#f6f7f9; --card:#ffffff; --line:#dde3ea;
-  --blue:#1e3a5f; --blue2:#2f5d8a; --blue-soft:#e8eff7;
-  --ok:#2e7d4f; --warn:#b3261e;
-  --r:10px;
-  --safe-b:env(safe-area-inset-bottom,0px);
-}
+:root{--ink:#1b2733;--ink2:#4a5866;--ink3:#8a96a3;--paper:#f6f7f9;--card:#fff;--line:#dde3ea;--blue:#1e3a5f;--blue2:#2f5d8a;--blue-soft:#e8eff7;--ok:#2e7d4f;--warn:#b3261e;--amber:#b7791f;--r:10px;--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
-  font:16px/1.45 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:0;background:none;padding:0}
-h1,h2,h3{margin:0;font-weight:600}
-.hidden{display:none!important}
-
-/* ---- top bar ---- */
-.top{position:sticky;top:0;z-index:5;background:var(--blue);color:#fff;
-  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;display:flex;align-items:center;gap:12px}
-.top h1{font-size:18px;flex:1;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top button{color:#fff;font-size:15px;padding:6px 8px;border-radius:8px;min-height:40px}
-.top button:active{background:rgba(255,255,255,.15)}
-.top .ico{font-size:22px;line-height:1;width:40px}
-
-/* ---- views ---- */
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:16px/1.45 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none;padding:0}
+h1,h2,h3{margin:0;font-weight:600}.hidden{display:none!important}
+.top{position:sticky;top:0;z-index:5;background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;display:flex;align-items:center;gap:10px}
+.top h1{font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top button{color:#fff;font-size:15px;padding:6px 8px;border-radius:8px;min-height:40px}.top button:active{background:rgba(255,255,255,.15)}.top .ico{font-size:22px;line-height:1;width:40px}
 .view{max-width:760px;margin:0 auto;padding:16px 16px calc(96px + var(--safe-b))}
-
-/* ---- list ---- */
-.report{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
-.report:active{background:var(--blue-soft)}
-.report .d{font-size:13px;color:var(--ink3)}
-.report .a{font-size:17px;font-weight:600;margin:2px 0}
-.report .o{font-size:14px;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.report .m{font-size:12px;color:var(--ink3);margin-top:6px}
-.empty{text-align:center;color:var(--ink2);padding:56px 16px}
-.empty p{margin:8px 0 0}
-.search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-bottom:14px}
-
-/* ---- forms ---- */
-.field{margin-bottom:14px}
-.field label{display:block;font-size:13px;color:var(--ink2);margin-bottom:5px}
-.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--line);
-  border-radius:var(--r);background:#fff;outline:none}
+.search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-bottom:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.chips button{flex:none;padding:6px 12px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:13px;color:var(--ink2);white-space:nowrap}
+.chips button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chips button.tag::before{content:"#";opacity:.6}
+.chiprow{display:flex;gap:8px;align-items:flex-start}.chiprow .chips{flex:1;min-width:0}
+.fbtn{flex:none;width:34px;height:32px;border-radius:16px;background:#fff;border:1px solid var(--line);color:var(--ink2);font-size:17px;position:relative}
+.fbtn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.fbtn .cnt{position:absolute;top:-6px;right:-6px;background:#e0287d;color:#fff;border-radius:9px;font-size:10px;min-width:18px;height:18px;line-height:18px;text-align:center;font-weight:700}
+.optrow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:6px;width:100%;text-align:left;font-size:15px}
+.optrow.on{border-color:var(--blue2);background:var(--blue-soft)}.optrow .ck{width:20px;height:20px;border:2px solid var(--ink3);border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+.optrow.on .ck{background:var(--blue);border-color:var(--blue)}.optrow.radio .ck{border-radius:50%}.optrow span.c{flex:1}.optrow small{color:var(--ink3)}
+.af{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.af span{background:var(--blue);color:#fff;border-radius:14px;padding:4px 10px;font-size:13px}.af span b{margin-left:6px;cursor:pointer;font-weight:400}
+.note{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;position:relative}
+.note:active{background:var(--blue-soft)}
+.note .t{font-size:16px;font-weight:600;margin-right:24px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.note .b{font-size:14px;color:var(--ink2);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note .m{font-size:12px;color:var(--ink3);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note .m .nb{color:var(--blue2)}.note .m .tg{color:var(--ink3)}
+.note .m .rem{color:var(--amber);font-weight:600}.note .m .rem.late{color:var(--warn)}.note .m .rem.done{color:var(--ok);text-decoration:line-through}
+.note .pin{position:absolute;top:10px;right:12px;font-size:14px}
+.note .th{display:flex;gap:4px;margin-top:8px}.note .th img{width:48px;height:48px;object-fit:cover;border-radius:6px}
+.sect{font-size:13px;color:var(--ink3);margin:22px 0 8px}
+.empty{text-align:center;color:var(--ink2);padding:56px 16px}.empty p{margin:8px 0 0}
+.field{margin-bottom:12px}.field label{display:block;font-size:13px;color:var(--ink2);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r);background:#fff;outline:none}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue2);box-shadow:0 0 0 3px var(--blue-soft)}
-.row{display:flex;gap:10px}
-.row>*{flex:1;min-width:0}
-textarea#f_text{min-height:46vh;line-height:1.5;resize:vertical}
-.hint{font-size:13px;color:var(--ink3);margin:-6px 0 14px}
-.hint code{background:var(--blue-soft);padding:1px 5px;border-radius:4px;font-size:12px}
-details.help{background:var(--blue-soft);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:14px}
-details.help summary{cursor:pointer;font-weight:600}
-details.help ul{margin:8px 0 0;padding-left:18px}
-details.help li{margin:3px 0}
-
-.lblrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.lblrow label{margin:0}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+#f_title{font-size:19px;font-weight:600}
+textarea#f_body{min-height:44vh;line-height:1.5;resize:vertical}
+.lblrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}.lblrow label{margin:0}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
-.seg button{padding:5px 12px;font-size:13px;color:var(--ink2);min-height:32px}
-.seg button.on{background:var(--blue);color:#fff}
-.pv.rdr{min-height:46vh;cursor:text}
-.pv.rdr .tip{font-size:12px;color:var(--ink3);text-align:center;margin-top:14px}
-/* ---- photos ---- */
-.photos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.seg button{padding:5px 12px;font-size:13px;color:var(--ink2);min-height:32px}.seg button.on{background:var(--blue);color:#fff}
+.tagbox{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+.tagbox span{background:var(--blue-soft);color:var(--blue2);padding:3px 8px;border-radius:12px;font-size:13px}
+.tagbox span b{margin-left:6px;cursor:pointer;font-weight:400}
+.tagbox input{flex:1;min-width:120px;border:0;outline:none;padding:4px}
+.toggle{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);min-height:48px;width:100%;text-align:left}
+.toggle.on{border-color:var(--blue2);background:var(--blue-soft)}
+.pv{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;font-size:14px;line-height:1.5;color:#333}
+.pv.rdr{min-height:44vh;cursor:text}.pv .tip{font-size:12px;color:var(--ink3);text-align:center;margin-top:14px}
+.pv .h1{color:#3a7fc4;font-weight:700;font-size:14px;margin:14px 0 6px}.pv .day{background:#3a7fc4;color:#fff;font-weight:700;font-size:12.5px;padding:4px 9px;margin:14px 0 8px;display:inline-block;border-radius:2px}
+.pv .h2{font-weight:700;font-size:13.5px;margin:10px 0 4px}.pv .h3{font-weight:700;font-size:13px;margin:8px 0 2px;color:#444}
+.pv p{margin:0 0 6px}.pv ul{margin:0 0 6px;padding-left:20px}.pv li{margin:1px 0}
+.pv li.ck{list-style:none;position:relative}.pv li.ck::before{content:"✓";position:absolute;left:-18px;color:#2e7d4f;font-weight:700}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .ph{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative}
-.ph img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#eee}
-.ph input{width:100%;border:0;border-top:1px solid var(--line);padding:8px 10px;font-size:13px;outline:none}
-.ph .x{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:rgba(27,39,51,.75);color:#fff;font-size:18px;line-height:30px;text-align:center}
-.ph .mv{position:absolute;top:6px;left:6px;display:flex;gap:4px}
-.ph .mv button{width:30px;height:30px;border-radius:50%;background:rgba(27,39,51,.6);color:#fff;font-size:16px}
-.ph .sz{position:absolute;bottom:38px;left:6px;font-size:11px;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:4px;color:var(--ink2)}
-.addph{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed var(--blue2);
-  border-radius:var(--r);color:var(--blue2);font-weight:600;background:#fff}
+.ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#eee}
+.ph .x{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;background:rgba(27,39,51,.75);color:#fff;font-size:16px;line-height:26px;text-align:center}
+.ph input{width:100%;border:0;border-top:1px solid var(--line);padding:6px 8px;font-size:12px;outline:none}
+.addph{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 8px;border:1.5px dashed var(--blue2);border-radius:var(--r);color:var(--blue2);font-weight:600;background:#fff;font-size:15px}
 .addph input{display:none}
-.row .addph{padding:12px 8px;font-size:15px}
-
-/* ---- buttons ---- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--r);
-  font-weight:600;min-height:48px;background:var(--blue);color:#fff}
-.btn.sec{background:#fff;color:var(--blue);border:1px solid var(--line)}
-.btn.danger{background:#fff;color:var(--warn);border:1px solid var(--line)}
-.btn.ok{background:var(--ok)}
-.btn:active{filter:brightness(.92)}
-.btn[disabled]{opacity:.5;pointer-events:none}
-.actions{position:fixed;left:0;right:0;bottom:0;z-index:5;background:rgba(246,247,249,.94);backdrop-filter:blur(8px);
-  border-top:1px solid var(--line);padding:10px 16px calc(10px + var(--safe-b))}
-.actions .in{max-width:760px;margin:0 auto;display:flex;gap:10px}
-.actions .in>*{flex:1}
-.fab{position:fixed;right:20px;bottom:calc(24px + var(--safe-b));z-index:5;width:60px;height:60px;border-radius:50%;
-  background:var(--blue);color:#fff;font-size:32px;line-height:60px;text-align:center;box-shadow:0 6px 18px rgba(30,58,95,.35)}
-
-/* ---- preview ---- */
-.pv{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 18px;font-size:14px;line-height:1.5;color:#333}
-.pv .hd{text-align:right;font-size:11px;color:#555;line-height:1.35}
-.pv .hd b{font-size:12px;color:#222}
-.pv .t{text-align:center;color:#3a7fc4;font-size:20px;font-weight:700;margin:14px 0 10px}
-.pv .pk{color:#e0287d;font-weight:700;font-size:14px;margin:12px 0 6px}
-.pv .meta{width:100%;border-collapse:collapse;margin:8px 0 6px}
-.pv .meta td{padding:5px 4px;vertical-align:top;border-bottom:1px solid #e5e5e5;font-size:13px}
-.pv .meta td:first-child{width:36%;font-weight:600}
-.pv .h1{color:#3a7fc4;font-weight:700;font-size:14px;margin:16px 0 6px}
-.pv .day{background:#3a7fc4;color:#fff;font-weight:700;font-size:12.5px;padding:4px 9px;margin:16px 0 8px;display:inline-block;border-radius:2px}
-.pv .h2{font-weight:700;font-size:13.5px;margin:10px 0 4px}
-.pv .h3{font-weight:700;font-size:13px;margin:8px 0 2px;color:#444}
-.pv p{margin:0 0 6px}
-.pv ul{margin:0 0 6px;padding-left:20px}
-.pv li{margin:1px 0}
-.pv li.ck{list-style:none;position:relative}
-.pv li.ck::before{content:"✓";position:absolute;left:-18px;color:#2e7d4f;font-weight:700}
-.pv .pg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-.pv .pg img{width:100%;aspect-ratio:1;object-fit:contain;background:#fafafa;border:1px solid #eee}
-.pv .pg figcaption{font-size:11px;text-align:center;color:#555;margin-top:4px}
-.pv figure{margin:0}
-
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--r);font-weight:600;min-height:48px;background:var(--blue);color:#fff}
+.btn.sec{background:#fff;color:var(--blue);border:1px solid var(--line)}.btn.danger{background:#fff;color:var(--warn);border:1px solid var(--line)}
+.btn:active{filter:brightness(.92)}.btn[disabled]{opacity:.5;pointer-events:none}
+.actions{position:fixed;left:0;right:0;bottom:0;z-index:5;background:rgba(246,247,249,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px calc(10px + var(--safe-b))}
+.actions .in{max-width:760px;margin:0 auto;display:flex;gap:10px}.actions .in>*{flex:1}
+.fab{position:fixed;right:20px;bottom:calc(24px + var(--safe-b));z-index:5;width:60px;height:60px;border-radius:50%;background:var(--blue);color:#fff;font-size:32px;line-height:60px;text-align:center;box-shadow:0 6px 18px rgba(30,58,95,.35)}
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
 .syncbar{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);margin:-4px 0 12px;padding:8px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
-.syncbar span{flex:1}
-.syncbar button{color:var(--blue2);font-weight:600;font-size:13px;padding:4px 8px}
-.syncbar.ok{border-color:#cfe6d6;background:#f1f9f4;color:#256b43}
-.syncbar.err{border-color:#f1c9c6;background:#fdf3f2;color:var(--warn)}
-.syncbar.busy #syncTxt::after{content:"…"}
-#btnSync.spin{animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.logoRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.logoPv{max-height:56px;max-width:160px;border:1px solid var(--line);border-radius:6px;padding:4px;background:#fff}
-.pv .hdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.pv .hdrow img{max-height:48px;max-width:140px;object-fit:contain}
-.vid .prog{position:absolute;left:0;right:0;bottom:38px;height:5px;background:rgba(255,255,255,.6)}
-.vid .prog i{display:block;height:100%;background:var(--blue)}
-.vid .st{position:absolute;bottom:46px;left:6px;font-size:11px;background:rgba(255,255,255,.9);padding:1px 6px;border-radius:4px;color:var(--ink2)}
-.vid .st.err{color:var(--warn)}
-.vid .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:44px;height:44px;border-radius:50%;background:rgba(27,39,51,.7);pointer-events:none}
-.vid .play::after{content:"";position:absolute;left:17px;top:12px;border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent}
-.pv .vg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-.pv .vg img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#222}
-.pv .vg a{font-size:11px;word-break:break-all;color:#3a7fc4}
+.syncbar span{flex:1}.syncbar button{color:var(--blue2);font-weight:600;font-size:13px;padding:4px 8px}
+.syncbar.ok{border-color:#cfe6d6;background:#f1f9f4;color:#256b43}.syncbar.err{border-color:#f1c9c6;background:#fdf3f2;color:var(--warn)}
+#btnSync.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 .verline{text-align:center;font-size:12px;color:var(--ink3);margin:18px 0 0}
 .updbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:30;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.updbar span{flex:1;font-size:14px}
-.updbar button{background:#fff;color:var(--ink);font-weight:600;padding:8px 14px;border-radius:8px}
-.updbar .later{background:none;color:#fff;font-weight:400;padding:8px}
-.toggle{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);min-height:48px;width:100%;text-align:left}
+.updbar span{flex:1;font-size:14px}.updbar button{background:#fff;color:var(--ink);font-weight:600;padding:8px 14px;border-radius:8px}.updbar .later{background:none;color:#fff;font-weight:400;padding:8px}
+.nbrow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.nbrow .n{flex:1}.nbrow .n span{font-size:13px;color:var(--ink2);display:block}
+.nbrow button{color:var(--blue2);padding:6px 10px;border-radius:8px;font-size:14px}.nbrow button.del{color:var(--warn)}
+dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,420px);box-shadow:0 20px 60px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(27,39,51,.5)}
+dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{flex:1}
+.trash .note{opacity:.75}
+.enf{display:flex;gap:8px;align-items:center;margin-bottom:8px}.enf span{flex:1;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.enf input{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
 .toggle input{width:20px;height:20px}
 .lnk{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
 .lnk .n{flex:1;min-width:0}.lnk .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lnk .n span{font-size:12px;color:var(--ink3)}
 .lnk button{color:var(--blue2);font-weight:600;font-size:13px;padding:6px 8px;border-radius:8px}.lnk button.del{color:var(--warn)}
 .chooser{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:6px}
 .chooser b{display:block;font-size:14px}.chooser span{font-size:12px;color:var(--ink3)}.chooser.on{border-color:var(--ok);background:#f1f9f4}
-.file{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
-.file .ic{width:44px;height:44px;border-radius:8px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
-.file .n{flex:1;min-width:0}.file .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.file .n span{font-size:12px;color:var(--ink3)}
+.file{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;position:relative}
+.file .ic{width:44px;height:44px;border-radius:8px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;overflow:hidden}
+.file .ic img{width:100%;height:100%;object-fit:cover}
+.file .n{flex:1;min-width:0}.file .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file .n span{font-size:12px;color:var(--ink3)}.file .n span.err{color:var(--warn)}.file .n span.ok{color:var(--ok)}
 .file .n input{width:100%;border:0;border-bottom:1px dashed var(--line);padding:2px 0;font-size:13px;outline:none;margin-top:2px}
+.file .prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:#eee}.file .prog i{display:block;height:100%;background:var(--blue)}
 .file button.x{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);color:var(--ink2);font-size:18px;flex:none}
 .file button.pl{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-size:15px;flex:none}
-/* ---- misc ---- */
-.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:#fff;
-  padding:10px 16px;border-radius:24px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
-.toast.show{opacity:1}
-.sect{font-size:13px;color:var(--ink3);margin:22px 0 8px}
-.client{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
-.client .n{flex:1}
-.client .n b{display:block}
-.client .n span{font-size:13px;color:var(--ink2)}
-.client button{color:var(--blue2);padding:6px 10px;border-radius:8px;font-size:14px}
-.client button.del{color:var(--warn)}
-dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,420px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
-dialog::backdrop{background:rgba(27,39,51,.5)}
-dialog h3{margin-bottom:12px}
-.rg{display:flex;gap:10px;margin-top:6px}
-.rg .btn{flex:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+#btnRec.rec{background:var(--warn);color:#fff;border-color:var(--warn);animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.7}}
+.pv .fl{margin:6px 0;padding:8px 10px;border:1px solid #eee;border-radius:6px;font-size:12px}.pv .fl a{color:#3a7fc4;word-break:break-all}
 </style>
 </head>
 <body>
@@ -188,203 +118,149 @@ dialog h3{margin-bottom:12px}
 <!-- ============ LISTE ============ -->
 <section id="v-list">
   <header class="top">
-    <h1 id="appTitle">Rapports d'intervention</h1>
-    <button class="ico" onclick="sync.full(true)" id="btnSync" title="Synchroniser">↻</button>
-    <button onclick="location.href='./notes/'" title="Notes">Notes</button>
-    <button onclick="go('clients')" title="Clients">Clients</button>
-    <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
+    <button class="ico" onclick="location.href='../'" title="Rapports">‹</button>
+    <h1 id="appTitle">Notes</h1>
+    <button class="ico" onclick="sync.full()" id="btnSync" title="Synchroniser">↻</button>
+    <button class="ico" onclick="dlgSort.showModal()" title="Trier">⇅</button>
+    <button onclick="go('notebooks')">Carnets</button>
+    <button class="ico" onclick="go('trash')" title="Corbeille">🗑</button>
   </header>
   <div class="view">
-    <div class="syncbar" id="syncbar"><span id="syncTxt">Synchronisation non configurée</span><button onclick="go('settings')">Réglages</button></div>
-    <input class="search" id="search" placeholder="Rechercher une adresse, un client, un objet…" oninput="renderList()">
+    <div class="syncbar" id="syncbar"><span id="syncTxt"></span><button id="syncBtn"></button></div>
+    <input class="search" id="search" placeholder="Rechercher dans les notes…" oninput="renderList()">
+    <div class="chiprow"><button class="fbtn" id="fbNb" onclick="openFilter('nb')" title="Filtrer les carnets">⚲</button><div class="chips" id="chipsNb"></div></div>
+    <div class="chiprow"><button class="fbtn" id="fbTag" onclick="openFilter('tag')" title="Filtrer les étiquettes">⚲</button><div class="chips" id="chipsTag"></div></div>
+    <div id="activeFilters"></div>
     <div id="list"></div>
     <p class="verline">Version <span class="verTxt"></span> · mise à jour le <span class="buildTxt"></span></p>
   </div>
-  <button class="fab" onclick="newReport()" aria-label="Nouveau rapport">+</button>
+  <button class="fab" onclick="newNote()" aria-label="Nouvelle note">+</button>
 </section>
 
 <!-- ============ ÉDITEUR ============ -->
 <section id="v-edit" class="hidden">
   <header class="top">
     <button class="ico" onclick="closeEditor()" aria-label="Retour">‹</button>
-    <h1 id="editTitle">Nouveau rapport</h1>
-    <button onclick="deleteCurrent()" id="btnDel">Supprimer</button>
+    <h1 id="editTitle">Note</h1>
+    <button onclick="trashCurrent()">Corbeille</button>
   </header>
   <div class="view">
+    <div class="field"><input id="f_title" placeholder="Titre de la note"></div>
     <div class="row">
-      <div class="field"><label>Date d'intervention</label><input type="date" id="f_date"></div>
-      <div class="field"><label>N° de rapport</label><input id="f_num" placeholder="auto"></div>
+      <div class="field"><label>Carnet</label><select id="f_nb" onchange="nbPicked()"><option value="">— Aucun —</option></select></div>
+      <div class="field"><label>Rappel</label><input type="datetime-local" id="f_rem"></div>
     </div>
-    <div class="field"><label>Client</label>
-      <select id="f_client" onchange="clientPicked()"><option value="">— Aucun —</option></select>
+    <div class="field"><label>Étiquettes</label>
+      <div class="tagbox" id="tagbox"><input id="f_tagin" placeholder="Ajouter… (Entrée ou virgule)"></div>
     </div>
-    <div class="field"><label>Adresse d'intervention</label><input id="f_addr" placeholder="5 rue Lucien Lamart, 95400 Arnouville"></div>
-    <div class="field"><label>Objet</label><input id="f_obj" placeholder="Recherche de fuite sur réseau général…"></div>
-
-    <details class="help">
-      <summary>Mise en forme automatique du texte</summary>
-      <ul>
-        <li><b>LIGNE EN MAJUSCULES</b> → titre de section</li>
-        <li><b>1. TITRE</b> → titre numéroté principal</li>
-        <li><b>LUNDI 31/08/2026</b> (jour + date) → bandeau de journée</li>
-        <li>Ligne courte sans point final → sous-titre</li>
-        <li><b>- texte</b> → liste à puces &nbsp;·&nbsp; <b>v texte</b> ou <b>✓ texte</b> → coche verte</li>
-        <li><b>Résultat :</b> / <b>Constat :</b> en début de ligne → mis en gras</li>
-        <li>Ligne vide → nouveau paragraphe</li>
-      </ul>
-    </details>
+    <div class="row" style="margin-bottom:12px">
+      <button class="toggle" id="f_pin" onclick="togglePin()">📌 <span>Épingler en haut de liste</span></button>
+      <button class="toggle hidden" id="f_remdone" onclick="toggleRemDone()">✅ <span>Rappel traité</span></button>
+    </div>
     <div class="field">
-      <div class="lblrow"><label>Compte rendu</label>
-        <div class="seg" role="tablist">
-          <button id="segTxt" class="on" onclick="setMode('txt')">Saisie</button>
-          <button id="segRdr" onclick="setMode('rdr')">Rendu</button>
-        </div>
+      <div class="lblrow"><label>Contenu</label>
+        <div class="seg"><button id="segTxt" class="on" onclick="setMode('txt')">Saisie</button><button id="segRdr" onclick="setMode('rdr')">Rendu</button></div>
       </div>
-      <div id="render" class="pv rdr hidden" onclick="setMode('txt')" title="Toucher pour modifier"></div>
-      <textarea id="f_text" placeholder="1. MOTIF DE L'INTERVENTION&#10;Nous avons été sollicités…&#10;&#10;VENDREDI 28/08/2026&#10;PREMIÈRES CONSTATATIONS&#10;À notre arrivée…&#10;- première puce&#10;- seconde puce&#10;&#10;Résultat : alimentation rétablie."></textarea>
+      <div id="render" class="pv rdr hidden" onclick="setMode('txt')"></div>
+      <textarea id="f_body" placeholder="Texte libre. MAJUSCULES = titre, - puce, v coche, Résultat : gras…"></textarea>
     </div>
-
-    <div class="sect">Photos (placées en fin de rapport)</div>
+    <div class="sect">Rapports d'intervention liés</div>
+    <div id="linkedReports"></div>
+    <div class="row">
+      <button class="addph" onclick="linkReportDialog()">🔗 Lier à un rapport…</button>
+      <button class="addph" onclick="openCreate()">📄 Créer un rapport</button>
+    </div>
+    <div class="sect">Photos</div>
     <div class="photos" id="photos"></div>
     <div class="row">
-      <label class="addph">📷 Prendre une photo
-        <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this.files);this.value=''">
-      </label>
-      <label class="addph">🖼 Galerie <span id="phcount"></span>
-        <input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''" id="galleryInput">
-      </label>
+      <label class="addph">📷 Photo<input type="file" accept="image/*" capture="environment" onchange="addPhotos(this.files);this.value=''"></label>
+      <label class="addph">🖼 Galerie<input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=''"></label>
     </div>
-
-    <div class="sect">Notes liées</div>
-    <div id="linkedNotes"></div>
-    <button class="addph" onclick="linkNoteDialog()">🔗 Lier une note…</button>
-
-    <div class="sect">Pièces jointes (audio, documents – reprises depuis une note)</div>
-    <div id="rfiles"></div>
-
-    <div class="sect">Vidéos (publiées sur YouTube, lien cliquable dans le PDF)</div>
-    <div class="photos" id="videos"></div>
+    <div class="sect">Pièces jointes (audio, documents sur le Drive, vidéos sur YouTube)</div>
+    <div id="files"></div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="addph" id="btnRec" onclick="recorder.toggle()">🎙 Enregistrer</button>
+      <label class="addph">📎 Document<input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,application/pdf,audio/*" multiple onchange="addFiles(this.files);this.value=''"></label>
+    </div>
     <div class="row">
-      <label class="addph">🎥 Filmer
-        <input type="file" accept="video/*" capture="environment" onchange="addVideos(this.files);this.value=''">
-      </label>
-      <label class="addph">🎞 Galerie vidéo
-        <input type="file" accept="video/*" multiple onchange="addVideos(this.files);this.value=''">
-      </label>
+      <label class="addph">🎥 Filmer<input type="file" accept="video/*" capture="environment" onchange="addFiles(this.files);this.value=''"></label>
+      <label class="addph">🎞 Vidéo galerie<input type="file" accept="video/*" multiple onchange="addFiles(this.files);this.value=''"></label>
     </div>
-    <button class="btn hidden" id="ytAuth" style="width:100%;margin-top:10px" onclick="videoUploader.authorize()">Autoriser l'envoi sur YouTube</button>
-    <p class="hint" style="margin-top:8px">Les vidéos sont publiées sur YouTube en « non répertoriée » (visibles uniquement avec le lien). Conseil : filmer en 1080p, pas en 4K. Environ 6 vidéos par jour maximum (quota Google).</p>
+    <button class="btn hidden" id="ytAuth" style="width:100%;margin-top:10px" onclick="location.href='../#youtube'">Autoriser YouTube depuis l'app Rapports</button>
+    <p class="hint" style="font-size:13px;color:var(--ink3);margin-top:8px">Les fichiers partent dès que le réseau est disponible ; le PDF de la note contient leurs liens.</p>
+    <p class="verline" id="editMeta"></p>
   </div>
   <div class="actions"><div class="in">
-    <button class="btn sec" onclick="preview()">Aperçu</button>
-    <button class="btn" onclick="exportPdf()">PDF</button>
+    <button class="btn sec" onclick="exportPdf()">PDF</button>
+    <button class="btn" onclick="closeEditor()">Terminé</button>
   </div></div>
 </section>
 
-<!-- ============ APERÇU ============ -->
-<section id="v-preview" class="hidden">
-  <header class="top">
-    <button class="ico" onclick="go('edit')" aria-label="Retour">‹</button>
-    <h1>Aperçu</h1>
-  </header>
-  <div class="view"><div class="pv" id="pv"></div></div>
-  <div class="actions"><div class="in">
-    <button class="btn sec" onclick="go('edit')">Modifier</button>
-    <button class="btn" onclick="exportPdf()">PDF</button>
-  </div></div>
-</section>
-
-<!-- ============ CLIENTS ============ -->
-<section id="v-clients" class="hidden">
+<!-- ============ CARNETS ============ -->
+<section id="v-notebooks" class="hidden">
   <header class="top">
     <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Clients</h1>
-    <button onclick="editClient()">Ajouter</button>
-  </header>
-  <div class="view" id="clientList"></div>
-</section>
-
-<!-- ============ RÉGLAGES ============ -->
-<section id="v-settings" class="hidden">
-  <header class="top">
-    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
-    <h1>Réglages</h1>
+    <h1>Carnets</h1>
+    <button onclick="editNotebook()">Ajouter</button>
   </header>
   <div class="view">
-    <div class="sect">En-tête des rapports</div>
-    <div class="field"><label>Logo de la société</label>
-      <div class="logoRow">
-        <img id="s_logoImg" class="logoPv hidden" alt="">
-        <label class="btn sec" style="cursor:pointer">Choisir une image<input type="file" accept="image/*" class="hidden" onchange="setLogo(this.files[0]);this.value=''"></label>
-        <button class="btn danger hidden" id="s_logoDel" onclick="setLogo(null)">Retirer</button>
-      </div>
-      <p class="hint" style="margin:6px 0 0">PNG ou JPEG ; il est affiché en haut à gauche du rapport, face aux coordonnées.</p>
-    </div>
-    <div class="field"><label>Nom de la société</label><input id="s_name"></div>
-    <div class="field"><label>Adresse</label><input id="s_addr"></div>
-    <div class="row">
-      <div class="field"><label>Téléphone</label><input id="s_tel"></div>
-      <div class="field"><label>E-mail</label><input id="s_mail"></div>
-    </div>
-    <div class="field"><label>Immatriculation (RCS, SIRET…)</label><input id="s_rcs"></div>
-    <div class="field"><label>Titre des rapports</label><input id="s_title" placeholder="RAPPORT D'INTERVENTION"></div>
-    <div class="field"><label>Pied de page</label><input id="s_footer" placeholder="Laisser vide = société + adresse d'intervention"></div>
-    <div class="sect">Photos</div>
-    <div class="field"><label>Taille maximale (pixels, côté le plus long)</label>
-      <select id="s_px"><option value="1024">1024 – très léger</option><option value="1280" selected>1280 – recommandé</option><option value="1600">1600 – plus détaillé</option></select></div>
-    <div class="field"><label>Qualité JPEG</label>
-      <select id="s_q"><option value="0.6">60 %</option><option value="0.72" selected>72 %</option><option value="0.85">85 %</option></select></div>
-    <button class="btn" onclick="saveSettings()">Enregistrer</button>
-
-    <div class="sect">Synchronisation Google Drive (équipe)</div>
-    <p class="hint" style="margin-top:0">Les rapports, clients et réglages sont partagés via le dossier « <span id="driveName"></span> » du Drive du compte connecté. Les PDF générés y sont aussi déposés (sous-dossier PDF).</p>
-    <details class="help" style="background:#fff;border:1px solid var(--line)"><summary>Réglages avancés (ne pas modifier)</summary>
-    <div class="field" style="margin-top:10px"><label>Secret client Google (OAuth)</label><input id="s_gsec" oninput="settings.gClientSecret=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
-    <div class="field"><label>Identifiant client Google (OAuth)</label><input id="s_gcid" placeholder="xxxxx.apps.googleusercontent.com" oninput="settings.gClientId=this.value.trim();store.saveSettings(settings);sync.renderSettings()"></div>
-    </details>
-    <p class="hint" id="gStatus"></p>
-    <div class="rg">
-      <button class="btn" id="btnGConnect" onclick="sync.connect()">Se connecter à Google</button>
-      <button class="btn danger" id="btnGDisc" onclick="sync.disconnect()">Se déconnecter</button>
-    </div>
-    <button class="btn sec hidden" id="btnYt" style="width:100%;margin-top:10px" onclick="sync.redirectAuth('yt')">Autoriser l'envoi des vidéos sur YouTube</button>
-
-    <div class="sect">Données</div>
-    <div class="rg">
-      <button class="btn sec" onclick="exportData()">Sauvegarder (JSON)</button>
-      <label class="btn sec" style="cursor:pointer">Restaurer<input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])"></label>
-    </div>
-    <p class="hint" style="margin-top:14px;text-align:center">Version <span class="verTxt"></span> · mise à jour le <span class="buildTxt"></span></p>
-    <p class="hint" id="storageNote" style="margin-top:10px">Les rapports sont stockés uniquement sur ce téléphone. Pensez à faire une sauvegarde de temps en temps.</p>
+    <div id="nbList"></div>
+    <div class="sect">Import</div>
+    <label class="addph" style="cursor:pointer">📥 Importer depuis Evernote (.enex)<input type="file" accept=".enex,application/xml,text/xml" multiple class="hidden" onchange="enex.pick(this.files);this.value=''"></label>
+    <p class="hint" style="font-size:13px;color:var(--ink3);margin-top:8px">Dans Evernote sur ordinateur : clic droit sur un carnet ▸ Exporter le carnet ▸ format ENEX. Un fichier par carnet : le carnet est recréé ici avec le même nom. À faire de préférence depuis le PC ; les notes arrivent ensuite sur le téléphone par la synchronisation.</p>
   </div>
 </section>
-
-<!-- dialog client -->
-<dialog id="dlgClient">
-  <h3 id="dlgClientTitle">Nouveau client</h3>
-  <div class="field"><label>Nom / raison sociale</label><input id="c_name"></div>
-  <div class="field"><label>Contact (téléphone, e-mail)</label><input id="c_contact"></div>
-  <div class="field"><label>Adresse habituelle</label><input id="c_addr"></div>
-  <div class="rg">
-    <button class="btn sec" onclick="dlgClient.close()">Annuler</button>
-    <button class="btn" onclick="saveClient()">Enregistrer</button>
-  </div>
+<dialog id="dlgEnex">
+  <h3>Import Evernote</h3>
+  <div id="enexFiles"></div>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="en_tags" checked> Conserver les étiquettes Evernote</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="en_files" checked> Envoyer PDF, audio et autres fichiers sur le Drive</label>
+  <p class="hint" id="enexProg" style="font-size:13px;margin-top:10px"></p>
+  <div class="rg"><button class="btn sec" id="enexCancel" onclick="enex.cancel()">Annuler</button><button class="btn" id="enexGo" onclick="enex.run()">Importer</button></div>
 </dialog>
 
-<dialog id="dlgNotes">
-  <h3>Lier une note</h3>
-  <input class="search" id="dlgNotesSearch" placeholder="Rechercher…" oninput="renderNoteChooser()">
-  <div id="noteChooser" style="max-height:50vh;overflow:auto"></div>
-  <div class="rg"><button class="btn sec" onclick="dlgNotes.close()">Fermer</button></div>
+<!-- ============ CORBEILLE ============ -->
+<section id="v-trash" class="hidden">
+  <header class="top">
+    <button class="ico" onclick="go('list')" aria-label="Retour">‹</button>
+    <h1>Corbeille</h1>
+    <button onclick="emptyTrash()">Vider</button>
+  </header>
+  <div class="view trash"><p class="sect" style="margin-top:0">Les notes sont supprimées définitivement après 30 jours.</p><div id="trashList"></div></div>
+</section>
+
+<dialog id="dlgSort">
+  <h3>Trier les notes</h3>
+  <div id="sortOpts"></div>
+  <p class="hint" style="font-size:13px;color:var(--ink3)">Les notes épinglées restent toujours en haut.</p>
+  <div class="rg"><button class="btn sec" onclick="dlgSort.close()">Fermer</button></div>
 </dialog>
-<dialog id="dlgTake">
-  <h3>Reprendre depuis la note</h3>
-  <p class="hint" id="takeTitle" style="margin-top:0"></p>
-  <label class="toggle"><input type="checkbox" id="tk_text" checked> Texte (ajouté au compte rendu)</label>
-  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_photos" checked> Photos</label>
-  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_videos" checked> Vidéos YouTube</label>
-  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="tk_files" checked> Audio et documents</label>
-  <div class="rg"><button class="btn sec" onclick="dlgTake.close()">Annuler</button><button class="btn" onclick="takeFromNote()">Reprendre</button></div>
+<dialog id="dlgFilter">
+  <h3 id="dlgFilterTitle">Filtrer</h3>
+  <input class="search" id="dlgFilterSearch" placeholder="Rechercher…" oninput="renderFilterList()">
+  <div id="filterList" style="max-height:50vh;overflow:auto"></div>
+  <div class="rg"><button class="btn sec" onclick="clearFilter()">Tout effacer</button><button class="btn" onclick="dlgFilter.close()">OK</button></div>
+</dialog>
+<dialog id="dlgNb">
+  <h3 id="dlgNbTitle">Nouveau carnet</h3>
+  <div class="field"><label>Nom</label><input id="nb_name"></div>
+  <div class="rg"><button class="btn sec" onclick="dlgNb.close()">Annuler</button><button class="btn" onclick="saveNotebook()">Enregistrer</button></div>
+</dialog>
+<dialog id="dlgReports">
+  <h3>Lier à un rapport</h3>
+  <input class="search" id="dlgRepSearch" placeholder="Rechercher une adresse, un numéro…" oninput="renderReportChooser()">
+  <div id="repChooser" style="max-height:50vh;overflow:auto"></div>
+  <div class="rg"><button class="btn sec" onclick="dlgReports.close()">Fermer</button></div>
+</dialog>
+<dialog id="dlgCreate">
+  <h3>Créer un rapport depuis cette note</h3>
+  <label class="toggle"><input type="checkbox" id="cr_obj" checked> Titre → Objet du rapport</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="cr_text" checked> Texte → Compte rendu</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="cr_photos" checked> Photos</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="cr_videos" checked> Vidéos YouTube</label>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="cr_files" checked> Audio et documents</label>
+  <p class="hint" style="font-size:13px;color:var(--ink3)">Le rapport s'ouvre ensuite dans l'app Rapports pour saisir l'adresse et le client.</p>
+  <div class="rg"><button class="btn sec" onclick="dlgCreate.close()">Annuler</button><button class="btn" onclick="createReport()">Créer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
 <div class="updbar hidden" id="updbar"><span>Nouvelle version disponible</span><button class="later" onclick="updbar.classList.add('hidden')">Plus tard</button><button onclick="applyUpdate()">Mettre à jour</button></div>
@@ -790,716 +666,535 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 </script>
 <script>
 /* =========================================================
-   Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
-   Tout le stockage local et le dossier Drive sont préfixés par cette clé.
+   Société (dossier parent : /ventura/notes/ → ventura)
    ========================================================= */
 const APP_VERSION='1.33';const BUILD_DATE='18/09/2026 à 13:04';
 const COMPANIES={
-  ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
-    defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
-  kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:"Rapports d'intervention – Kidebouchetou.com",
-    defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
+  ventura:{label:'Ventura',color:'#1e3a5f',drive:'Notes – Ventura',defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
+  kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Notes – Kidebouchetou.com',defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
 };
-const COMPANY_KEY=(()=>{const q=new URLSearchParams(location.search).get('societe');if(q&&COMPANIES[q])return q;
-  const seg=location.pathname.split('/').filter(Boolean).map(s=>s.toLowerCase());for(const s of seg.reverse())if(COMPANIES[s])return s;return 'ventura'})();
+const COMPANY_KEY=(()=>{const seg=location.pathname.split('/').filter(Boolean).map(s=>s.toLowerCase());for(const s of seg.reverse())if(COMPANIES[s])return s;return 'ventura'})();
 const COMPANY=COMPANIES[COMPANY_KEY];
-const LS=k=>COMPANY_KEY+':'+k;                       // clés locales propres à la société
+const LS=k=>COMPANY_KEY+':'+k;
 document.documentElement.style.setProperty('--blue',COMPANY.color);
 document.querySelector('meta[name=theme-color]').content=COMPANY.color;
-document.title='Rapports – '+COMPANY.label;document.getElementById('driveName').textContent=COMPANY.drive;
-document.getElementById('appTitle').textContent='Rapports – '+COMPANY.label;document.querySelectorAll('.verTxt').forEach(e=>e.textContent=APP_VERSION);document.querySelectorAll('.buildTxt').forEach(e=>e.textContent=BUILD_DATE);
-/* =========================================================
-   Stockage
-   - Application native (Capacitor) : fichiers JSON dans le dossier privé
-     de l'app (Directory.Data) → indépendant du navigateur.
-   - Navigateur : IndexedDB.
-   ========================================================= */
-const CAP=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
-const FS=CAP?window.Capacitor.Plugins.Filesystem:null;
-const SHARE=CAP?window.Capacitor.Plugins.Share:null;
-const DATA='DATA';const NP=COMPANY_KEY+'/';
-
-let store;
-if(CAP){
-  const enc='utf8';
-  const read=async p=>{try{const r=await FS.readFile({path:NP+p,directory:DATA,encoding:enc});return JSON.parse(r.data)}catch(e){return null}};
-  const write=(p,v)=>FS.writeFile({path:NP+p,directory:DATA,encoding:enc,data:JSON.stringify(v),recursive:true});
-  store={
-    async init(){try{await FS.mkdir({path:NP+'reports',directory:DATA,recursive:true})}catch(e){}},
-    async allReports(){let out=[];try{const l=await FS.readdir({path:NP+'reports',directory:DATA});
-      for(const f of l.files){const n=f.name||f;if(!n.endsWith('.json'))continue;const r=await read('reports/'+n);if(r)out.push(r)}}catch(e){}return out},
-    putReport:r=>write('reports/'+r.id+'.json',r),
-    delReport:id=>FS.deleteFile({path:NP+'reports/'+id+'.json',directory:DATA}).catch(()=>{}),
-    async allClients(){return (await read('clients.json'))||[]},
-    async putClient(c){const l=await this.allClients();const i=l.findIndex(x=>x.id===c.id);if(i>=0)l[i]=c;else l.push(c);await write('clients.json',l)},
-    async delClient(id){await write('clients.json',(await this.allClients()).filter(x=>x.id!==id))},
-    async loadSettings(){return (await read('settings.json'))||{}},
-    saveSettings:s=>write('settings.json',s),
-  };
-}else{
-  const DB_NAME='rapports-intervention-'+COMPANY_KEY,DB_VER=1;let db;
-  const tx=(st,mode,fn)=>new Promise((res,rej)=>{const t=db.transaction(st,mode);fn(t.objectStore(st));t.oncomplete=res;t.onerror=e=>rej(e.target.error)});
-  const all=st=>new Promise((res,rej)=>{const r=db.transaction(st).objectStore(st).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
-  store={
-    init(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);
-      r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('reports'))d.createObjectStore('reports',{keyPath:'id'});if(!d.objectStoreNames.contains('clients'))d.createObjectStore('clients',{keyPath:'id'})};
-      r.onsuccess=e=>{db=e.target.result;res()};r.onerror=e=>rej(e.target.error)})},
-    allReports:()=>all('reports'),putReport:r=>tx('reports','readwrite',s=>s.put(r)),delReport:id=>tx('reports','readwrite',s=>s.delete(id)),
-    allClients:()=>all('clients'),putClient:c=>tx('clients','readwrite',s=>s.put(c)),delClient:id=>tx('clients','readwrite',s=>s.delete(id)),
-    loadSettings:async()=>JSON.parse(localStorage.getItem(LS('settings'))||'{}'),saveSettings:async s=>localStorage.setItem(LS('settings'),JSON.stringify(s)),
-  };
-}
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-
+document.title='Notes – '+COMPANY.label;document.getElementById('appTitle').textContent='Notes – '+COMPANY.label;
+document.querySelectorAll('.verTxt').forEach(e=>e.textContent=APP_VERSION);document.querySelectorAll('.buildTxt').forEach(e=>e.textContent=BUILD_DATE);
 const GOOGLE_CLIENT_SECRET='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';
-const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com'; // à remplacer par l'identifiant OAuth (type Application Web)
-const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0,updatedAt:0},COMPANY.defaults,{title:"RAPPORT D'INTERVENTION",footer:'',px:1280,q:0.72});
-let settings=Object.assign({},DEF_SETTINGS);
-let reports=[],clients=[],cur=null,dirty=false;
+const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com';
+// réglages partagés avec l'app Rapports (même clé locale)
+const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0,title:"NOTE",footer:'',px:1280,q:0.72},COMPANY.defaults);
+let settings=Object.assign({},DEF_SETTINGS,JSON.parse(localStorage.getItem(LS('settings'))||'{}'));
+if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID;if(!settings.gClientSecret)settings.gClientSecret=GOOGLE_CLIENT_SECRET;
+
+/* ================= stockage local ================= */
+const DB_NAME='notes-'+COMPANY_KEY;let db;
+const store={
+  init(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('notes'))d.createObjectStore('notes',{keyPath:'id'});if(!d.objectStoreNames.contains('notebooks'))d.createObjectStore('notebooks',{keyPath:'id'})};
+    r.onsuccess=e=>{db=e.target.result;res()};r.onerror=e=>rej(e.target.error)})},
+  all:st=>new Promise((res,rej)=>{const r=db.transaction(st).objectStore(st).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}),
+  put:(st,v)=>new Promise((res,rej)=>{const t=db.transaction(st,'readwrite');t.objectStore(st).put(v);t.oncomplete=res;t.onerror=e=>rej(e.target.error)}),
+  del:(st,k)=>new Promise((res,rej)=>{const t=db.transaction(st,'readwrite');t.objectStore(st).delete(k);t.oncomplete=res;t.onerror=e=>rej(e.target.error)}),
+};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDT=ts=>ts?new Date(ts).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'';
+let notes=[],notebooks=[],cur=null,dirty=false,listLimit=200;
+let filterNbs=new Set(),filterTags=new Set(),onlyRem=false,sortMode=localStorage.getItem(LS('notes_sort'))||'updated';
+const SORTS={updated:'Dernière mise à jour (récent → ancien)',created:'Date de création (récent → ancien)',title:'Titre (A → Z)',reminder:'Rappel (le plus proche d\'abord)'};
+const TRASH_DAYS=30;
 
 /* ================= navigation ================= */
-const views=['list','edit','preview','clients','settings'];
+const views=['list','edit','notebooks','trash'];
 function go(v){views.forEach(x=>document.getElementById('v-'+x).classList.toggle('hidden',x!==v));window.scrollTo(0,0);
-  if(v==='clients')renderClients();if(v==='settings')fillSettings();if(v==='list')renderList();}
+  if(v==='list')renderList();if(v==='notebooks')renderNotebooks();if(v==='trash')renderTrash()}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
-const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nbName=id=>(notebooks.find(n=>n.id===id)||{}).name||'';
+const live=()=>notes.filter(n=>!n.deletedAt);
 
 /* ================= liste ================= */
-function renderList(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
+function allTags(){const s=new Set();live().forEach(n=>(n.tags||[]).forEach(t=>s.add(t)));return [...s].sort((a,b)=>a.localeCompare(b))}
+function filterKey(){return document.getElementById('search').value+'|'+[...filterNbs].join(',')+'|'+[...filterTags].join(',')+'|'+onlyRem+'|'+sortMode}
+function renderList(){if(renderList._q!==filterKey()){listLimit=200;renderList._q=filterKey()}
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  const nbSorted=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('chipsNb').innerHTML=`<button class="${!filterNbs.size&&!onlyRem?'on':''}" onclick="filterNbs.clear();onlyRem=false;renderList()">Tout</button>`+
+    `<button class="${onlyRem?'on':''}" onclick="onlyRem=!onlyRem;renderList()">⏰ Rappels</button>`+
+    nbSorted.map(n=>`<button class="${filterNbs.has(n.id)?'on':''}" onclick="toggleSet(filterNbs,'${n.id}')">${esc(n.name)}</button>`).join('');
+  const tags=allTags();document.getElementById('chipsTag').innerHTML=tags.map(t=>`<button class="tag ${filterTags.has(t)?'on':''}" onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('');
+  const fb=document.getElementById('fbNb');fb.classList.toggle('on',!!filterNbs.size);fb.innerHTML='⚲'+(filterNbs.size?`<span class="cnt">${filterNbs.size}</span>`:'');
+  const ft=document.getElementById('fbTag');ft.classList.toggle('on',!!filterTags.size);ft.innerHTML='⚲'+(filterTags.size?`<span class="cnt">${filterTags.size}</span>`:'');
+  document.getElementById('activeFilters').innerHTML=(filterNbs.size||filterTags.size||onlyRem||sortMode!=='updated')?`<div class="af">${onlyRem?'<span>⏰ Rappels<b onclick="onlyRem=false;renderList()">×</b></span>':''}${[...filterNbs].map(id=>`<span>${esc(nbName(id))}<b onclick="toggleSet(filterNbs,'${id}')">×</b></span>`).join('')}${[...filterTags].map(t=>`<span>#${esc(t)}<b onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')">×</b></span>`).join('')}${sortMode!=='updated'?`<span>⇅ ${SORTS[sortMode].split(' (')[0]}<b onclick="setSort('updated')">×</b></span>`:''}</div>`:'';
+  let rows=live().filter(n=>(!filterNbs.size||filterNbs.has(n.notebookId))&&(!onlyRem||!!n.reminder)&&(!filterTags.size||(n.tags||[]).some(t=>filterTags.has(t)))
+    &&(!q||[n.title,n.body,(n.tags||[]).join(' '),nbName(n.notebookId),...(n.photos||[]).map(p=>p.cap),...(n.files||[]).map(f=>f.name+' '+f.cap)].join(' ').toLowerCase().includes(q)));
+  const cmp={updated:(a,b)=>(b.updatedAt||0)-(a.updatedAt||0),created:(a,b)=>(b.createdAt||0)-(a.createdAt||0),title:(a,b)=>(a.title||firstLine(a.body)).localeCompare(b.title||firstLine(b.body),'fr',{sensitivity:'base'}),
+    reminder:(a,b)=>(a.reminder?0:1)-(b.reminder?0:1)||(a.remDone?1:0)-(b.remDone?1:0)||(a.reminder||'').localeCompare(b.reminder||'')||(b.updatedAt||0)-(a.updatedAt||0)}[sortMode];
+  rows.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||cmp(a,b));
   const el=document.getElementById('list');
-  const rows=reports.filter(r=>!q||[r.addr,r.obj,r.text,clientName(r.clientId)].join(' ').toLowerCase().includes(q))
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.num||'').localeCompare(a.num||'',undefined,{numeric:true})||(b.updatedAt||0)-(a.updatedAt||0));
-  if(!rows.length){el.innerHTML=`<div class="empty"><h2>${reports.length?'Aucun résultat':'Aucun rapport pour l’instant'}</h2><p>${reports.length?'Essayez un autre mot.':'Appuyez sur + pour créer votre premier rapport.'}</p></div>`;return}
-  el.innerHTML=rows.map(r=>`<button class="report" onclick="openReport('${r.id}')">
-    <div class="d">${esc(fmtDate(r.date))}${r.num?' · n° '+esc(r.num):''}</div>
-    <div class="a">${esc(r.addr||'(adresse non renseignée)')}</div>
-    <div class="o">${esc(r.obj||'')}</div>
-    <div class="m">${clientName(r.clientId)?esc(clientName(r.clientId))+' · ':''}${(r.photos||[]).length} photo${(r.photos||[]).length>1?'s':''} · modifié ${new Date(r.updatedAt).toLocaleDateString('fr-FR')}</div></button>`).join('');
+  if(!rows.length){el.innerHTML=`<div class="empty"><h2>${live().length?'Aucun résultat':'Aucune note'}</h2><p>${live().length?'Essayez un autre mot ou retirez les filtres.':'Appuyez sur + pour créer votre première note.'}</p></div>`;return}
+  const LIM=listLimit;el.innerHTML=rows.slice(0,LIM).map(n=>noteCard(n,'openNote')).join('')+(rows.length>LIM?`<button class="btn sec" style="width:100%" onclick="listLimit+=200;renderList()">Afficher ${Math.min(200,rows.length-LIM)} de plus (${rows.length-LIM} restantes)</button>`:'');
 }
-function clientName(id){const c=clients.find(c=>c.id===id);return c?c.name:''}
+function toggleSet(s,v){if(s.has(v))s.delete(v);else s.add(v);renderList();if(dlgFilter.open)renderFilterList()}
+function setSort(m){sortMode=m;localStorage.setItem(LS('notes_sort'),m);renderSortOpts();renderList()}
+function renderSortOpts(){document.getElementById('sortOpts').innerHTML=Object.entries(SORTS).map(([k,l])=>`<button class="optrow radio ${sortMode===k?'on':''}" onclick="setSort('${k}');dlgSort.close()"><span class="ck">${sortMode===k?'●':''}</span><span class="c">${l}</span></button>`).join('')}
+let filterKind='nb';
+function openFilter(kind){filterKind=kind;dlgFilterTitle.textContent=kind==='nb'?'Filtrer les carnets':'Filtrer les étiquettes';dlgFilterSearch.value='';renderFilterList();dlgFilter.showModal()}
+function renderFilterList(){const q=(dlgFilterSearch.value||'').toLowerCase();const el=document.getElementById('filterList');
+  if(filterKind==='nb'){const rows=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).filter(n=>!q||n.name.toLowerCase().includes(q));
+    el.innerHTML=rows.map(n=>{const c=live().filter(x=>x.notebookId===n.id).length;return `<button class="optrow ${filterNbs.has(n.id)?'on':''}" onclick="toggleSet(filterNbs,'${n.id}')"><span class="ck">${filterNbs.has(n.id)?'✓':''}</span><span class="c">${esc(n.name)}</span><small>${c}</small></button>`}).join('')||'<p class="hint">Aucun carnet.</p>'}
+  else{const cnt={};live().forEach(n=>(n.tags||[]).forEach(t=>cnt[t]=(cnt[t]||0)+1));const rows=Object.keys(cnt).sort((a,b)=>a.localeCompare(b)).filter(t=>!q||t.includes(q));
+    el.innerHTML=rows.map(t=>`<button class="optrow ${filterTags.has(t)?'on':''}" onclick="toggleSet(filterTags,'${esc(t).replace(/'/g,"\\'")}')"><span class="ck">${filterTags.has(t)?'✓':''}</span><span class="c">#${esc(t)}</span><small>${cnt[t]}</small></button>`).join('')||'<p class="hint">Aucune étiquette.</p>'}}
+function clearFilter(){(filterKind==='nb'?filterNbs:filterTags).clear();renderList();renderFilterList()}
+function remInfo(n){if(!n.reminder)return '';const d=new Date(n.reminder);const late=!n.remDone&&d<new Date();
+  return `<span class="rem ${n.remDone?'done':late?'late':''}">⏰ ${d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>`}
+function noteCard(n,fn){return `<button class="note" onclick="${fn}('${n.id}')">
+  ${n.pinned?'<span class="pin">📌</span>':''}
+  <div class="t">${esc(n.title||firstLine(n.body)||'(sans titre)')}</div>
+  <div class="b">${esc(n.title?(n.body||'').slice(0,200):(n.body||'').split('\n').slice(1).join(' ').slice(0,200))}</div>
+  <div class="m">${nbName(n.notebookId)?`<span class="nb">${esc(nbName(n.notebookId))}</span>`:''}${(n.tags||[]).map(t=>`<span class="tg">#${esc(t)}</span>`).join('')}${remInfo(n)}<span>${fmtDT(n.deletedAt||n.updatedAt)}</span></div>
+  ${(n.files||[]).length?`<span style="font-size:12px;color:var(--ink3)">📎 ${n.files.length}</span>`:''}
+  ${(n.photos||[]).length?`<div class="th">${n.photos.slice(0,4).map(p=>`<img src="${p.data}" alt="">`).join('')}${n.photos.length>4?`<span style="font-size:12px;color:var(--ink3)">+${n.photos.length-4}</span>`:''}</div>`:''}
+</button>`}
+const firstLine=b=>(b||'').split('\n').map(s=>s.trim()).find(Boolean)||'';
 
 /* ================= éditeur ================= */
-function newReport(){
-  const today=new Date();const iso=today.toISOString().slice(0,10);
-  cur={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:iso,num:nextNum(today),clientId:'',addr:'',obj:'',text:'',photos:[],videos:[],files:[],noteIds:[]};
-  fillEditor();go('edit');
-}
-function nextNum(d){const y=d.getFullYear();const n=reports.filter(r=>(r.num||'').startsWith(y+'-')).length+1;return `${y}-${String(n).padStart(3,'0')}`}
-function openReport(id){cur=JSON.parse(JSON.stringify(reports.find(r=>r.id===id)));cur.videos=cur.videos||[];cur.files=cur.files||[];cur.noteIds=cur.noteIds||[];fillEditor();go('edit')}
+function newNote(pre={}){cur=Object.assign({id:uid(),createdAt:Date.now(),updatedAt:Date.now(),title:'',body:'',notebookId:filterNbs.size===1?[...filterNbs][0]:'',tags:filterTags.size===1?[...filterTags]:[],pinned:false,reminder:'',remDone:false,photos:[],files:[],reportIds:[],deletedAt:null},pre);fillEditor();go('edit');setTimeout(()=>f_title.focus(),80)}
+function openNote(id){cur=JSON.parse(JSON.stringify(notes.find(n=>n.id===id)));cur.files=cur.files||[];cur.reportIds=cur.reportIds||[];fillEditor();go('edit')}
 function fillEditor(){
-  document.getElementById('editTitle').textContent=cur.addr?cur.addr:'Nouveau rapport';
-  f_date.value=cur.date||'';f_num.value=cur.num||'';f_addr.value=cur.addr||'';f_obj.value=cur.obj||'';f_text.value=cur.text||'';
-  fillClientSelect();f_client.value=cur.clientId||'';renderPhotos();renderVideos();renderRFiles();renderLinkedNotes();setMode('txt');dirty=false;
+  f_title.value=cur.title||'';f_body.value=cur.body||'';f_rem.value=cur.reminder||'';
+  f_nb.innerHTML='<option value="">— Aucun —</option>'+notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(n=>`<option value="${n.id}">${esc(n.name)}</option>`).join('')+'<option value="__new">＋ Nouveau carnet…</option>';
+  f_nb.value=cur.notebookId||'';renderTags();renderPin();renderPhotos();renderFiles();renderLinkedReports();setMode('txt');
+  document.getElementById('editTitle').textContent=cur.title||'Note';
+  document.getElementById('editMeta').textContent=`Créée le ${fmtDT(cur.createdAt)} · modifiée le ${fmtDT(cur.updatedAt)}`;dirty=false;
 }
-function fillClientSelect(){f_client.innerHTML='<option value="">— Aucun —</option>'+clients.sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'<option value="__new">＋ Nouveau client…</option>'}
-function clientPicked(){if(f_client.value==='__new'){f_client.value=cur.clientId||'';editClient(null,true);return}
-  const c=clients.find(c=>c.id===f_client.value);if(c&&c.addr&&!f_addr.value)f_addr.value=c.addr;mark()}
-function readEditor(){cur.date=f_date.value;cur.num=f_num.value.trim();cur.clientId=f_client.value==='__new'?'':f_client.value;cur.addr=f_addr.value.trim();cur.obj=f_obj.value.trim();cur.text=f_text.value}
+function readEditor(){cur.title=f_title.value.trim();cur.body=f_body.value;cur.reminder=f_rem.value;if(!cur.reminder)cur.remDone=false;cur.notebookId=f_nb.value==='__new'?(cur.notebookId||''):f_nb.value}
 function mark(){dirty=true}
-['f_date','f_num','f_addr','f_obj','f_text'].forEach(id=>document.getElementById(id).addEventListener('input',mark));
-async function save(silent){
-  readEditor();
-  if(!cur.addr&&!cur.text&&!cur.photos.length&&!(cur.videos||[]).length)return false;
-  cur.updatedAt=Date.now();await store.putReport(cur);sync.schedule();
-  const i=reports.findIndex(r=>r.id===cur.id);if(i>=0)reports[i]=cur;else reports.push(cur);
-  dirty=false;if(!silent)toast('Rapport enregistré');return true;
-}
-async function closeEditor(){await save(true);go('list')}
-async function deleteCurrent(){
-  if(!confirm('Supprimer définitivement ce rapport ?'))return;
-  await store.delReport(cur.id);reports=reports.filter(r=>r.id!==cur.id);sync.markDeleted('r',cur.id);sync.schedule();cur=null;toast('Rapport supprimé');go('list');
-}
-// sauvegarde automatique
+['f_title','f_body','f_rem'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{mark();if(id==='f_rem')renderPin()}));
+function nbPicked(){if(f_nb.value==='__new'){f_nb.value=cur.notebookId||'';editNotebook(null,true);return}mark()}
+function renderTags(){const box=document.getElementById('tagbox');const inp=document.getElementById('f_tagin');
+  box.querySelectorAll('span').forEach(s=>s.remove());(cur.tags||[]).forEach((t,i)=>{const s=document.createElement('span');s.innerHTML=esc(t)+'<b onclick="cur.tags.splice('+i+',1);renderTags();mark()">×</b>';box.insertBefore(s,inp)})}
+document.getElementById('f_tagin').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();addTag(e.target.value);e.target.value=''}else if(e.key==='Backspace'&&!e.target.value&&cur.tags.length){cur.tags.pop();renderTags();mark()}});
+document.getElementById('f_tagin').addEventListener('blur',e=>{if(e.target.value.trim()){addTag(e.target.value);e.target.value=''}});
+function addTag(v){v=v.replace(/^#/,'').trim().toLowerCase();if(!v)return;cur.tags=cur.tags||[];if(!cur.tags.includes(v))cur.tags.push(v);renderTags();mark()}
+function renderPin(){f_pin.classList.toggle('on',!!cur.pinned);f_remdone.classList.toggle('hidden',!f_rem.value);f_remdone.classList.toggle('on',!!cur.remDone)}
+function togglePin(){cur.pinned=!cur.pinned;renderPin();mark()}
+function toggleRemDone(){cur.remDone=!cur.remDone;renderPin();mark()}
+async function save(silent){readEditor();if(!cur.title&&!cur.body.trim()&&!cur.photos.length&&!(cur.files||[]).length)return false;
+  cur.updatedAt=Date.now();await store.put('notes',cur);const i=notes.findIndex(n=>n.id===cur.id);if(i>=0)notes[i]=JSON.parse(JSON.stringify(cur));else notes.push(JSON.parse(JSON.stringify(cur)));
+  dirty=false;sync.schedule();if(!silent)toast('Note enregistrée');return true}
+async function closeEditor(){if(dirty)await save(true);go('list')}
+async function trashCurrent(){if(!confirm('Mettre cette note à la corbeille ?'))return;readEditor();cur.deletedAt=Date.now();await save(true);toast('Note mise à la corbeille');go('list')}
 setInterval(()=>{if(cur&&dirty&&!document.getElementById('v-edit').classList.contains('hidden'))save(true)},4000);
+window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
 
-/* ================= photos ================= */
-const isHeic=f=>/heic|heif/i.test(f.type)||/\.hei[cf]$/i.test(f.name||'');
-let heicLib=null;
-function loadHeic(){if(window.heic2any)return Promise.resolve(true);if(heicLib)return heicLib;
-  heicLib=new Promise(r=>{const s=document.createElement('script');s.src='./heic2any.min.js';s.onload=()=>r(true);s.onerror=()=>{heicLib=null;r(false)};document.head.appendChild(s)});return heicLib}
-async function heicToJpeg(file){
-  if(!await loadHeic())throw new Error('Convertisseur HEIC indisponible (hors ligne ?)');
-  let out=await heic2any({blob:file,toType:'image/jpeg',quality:0.9});if(Array.isArray(out))out=out[0];return out;
-}
-async function addPhotos(files){
-  const arr=[...files];if(!arr.length)return;
-  toast(`Traitement de ${arr.length} photo${arr.length>1?'s':''}…`);
-  let ok=0,ko=[];
-  for(let f of arr){
-    try{
-      if(isHeic(f)){toast('Conversion HEIC…');f=await heicToJpeg(f)}
-      let d;try{d=await compress(f)}catch(e){ // type inconnu : dernier essai en HEIC
-        if(!isHeic(f)){f=await heicToJpeg(f);d=await compress(f)}else throw e}
-      cur.photos.push({id:uid(),data:d.url,w:d.w,h:d.h,size:d.size,cap:''});ok++;
-    }catch(e){console.warn(e);ko.push(f.name||'photo')}
-  }
-  renderPhotos();mark();if(ok)await save(true);
-  toast(ko.length?`${ok} ajoutée${ok>1?'s':''}, ${ko.length} illisible${ko.length>1?'s':''} (${ko.join(', ').slice(0,60)})`:`${ok} photo${ok>1?'s':''} ajoutée${ok>1?'s':''}`);
-}
-function compress(file){return new Promise((res,rej)=>{
-  const url=URL.createObjectURL(file);const img=new Image();
-  img.onload=()=>{URL.revokeObjectURL(url);
-    const max=+settings.px||1280;let w=img.naturalWidth,h=img.naturalHeight;const r=Math.min(1,max/Math.max(w,h));w=Math.round(w*r);h=Math.round(h*r);
-    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
-    const out=c.toDataURL('image/jpeg',+settings.q||0.72);res({url:out,w,h,size:Math.round(out.length*0.75)})};
-  img.onerror=()=>{URL.revokeObjectURL(url);rej()};img.src=url;})}
-function renderPhotos(){
-  const el=document.getElementById('photos');
-  el.innerHTML=cur.photos.map((p,i)=>`<div class="ph">
-    <img src="${p.data}" alt="">
-    <div class="mv"><button onclick="movePhoto(${i},-1)" ${i===0?'disabled':''}>‹</button><button onclick="movePhoto(${i},1)" ${i===cur.photos.length-1?'disabled':''}>›</button></div>
-    <span class="sz">${Math.round(p.size/1024)} Ko</span>
-    <button class="x" onclick="removePhoto(${i})" aria-label="Retirer">×</button>
-    <input placeholder="Légende…" value="${esc(p.cap)}" oninput="cur.photos[${i}].cap=this.value;mark()"></div>`).join('');
-  document.getElementById('phcount').textContent=cur.photos.length?`(${cur.photos.length})`:'';
-}
-function removePhoto(i){cur.photos.splice(i,1);renderPhotos();mark()}
-function movePhoto(i,d){const j=i+d;[cur.photos[i],cur.photos[j]]=[cur.photos[j],cur.photos[i]];renderPhotos();mark()}
-
-/* =========================================================
-   Analyse du texte libre → blocs structurés
-   ========================================================= */
+/* ================= mise en forme ================= */
 const DAYS='LUNDI|MARDI|MERCREDI|JEUDI|VENDREDI|SAMEDI|DIMANCHE';
-const reDay=new RegExp(`^(${DAYS})\\s+\\d{1,2}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}\\s*:?$`,'i');
-const reNum=/^\d+[.)]\s+\S/;
-const reBullet=/^[-•*–]\s+/;
-const reCheck=/^(✓|✔|v|V|\[x\]|\[X\])\s+/;
-const reLabel=/^(Résultat|Resultat|Constat|Remarque|Conclusion|Observation|Important|Note|Recommandation)\s*:\s*/i;
-function isUpper(s){const letters=s.replace(/[^A-Za-zÀ-ÿ]/g,'');return letters.length>=3&&letters===letters.toUpperCase()}
-function parse(text){
-  const lines=(text||'').replace(/\r/g,'').split('\n');const out=[];let list=null;
-  const flush=()=>{if(list){out.push(list);list=null}};
-  for(let raw of lines){
-    const s=raw.trim();
-    if(!s||/^-{3,}$/.test(s)){flush();continue}
+const reDay=new RegExp(`^(${DAYS})\\s+\\d{1,2}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}\\s*:?$`,'i'),reNum=/^\d+[.)]\s+\S/,reBullet=/^[-•*–]\s+/,reCheck=/^(✓|✔|v|V|\[x\]|\[X\])\s+/,reLabel=/^(Résultat|Resultat|Constat|Remarque|Conclusion|Observation|Important|Note|Recommandation|Attention|À faire|A faire)\s*:\s*/i;
+function isUpper(s){const l=s.replace(/[^A-Za-zÀ-ÿ]/g,'');return l.length>=3&&l===l.toUpperCase()}
+function parse(text){const lines=(text||'').replace(/\r/g,'').split('\n');const out=[];let list=null;const flush=()=>{if(list){out.push(list);list=null}};
+  for(let raw of lines){const s=raw.trim();if(!s||/^-{3,}$/.test(s)){flush();continue}
     if(reBullet.test(s)){const t=s.replace(reBullet,'');if(!list||list.type!=='ul'){flush();list={type:'ul',items:[]}}list.items.push(t);continue}
     if(reCheck.test(s)){const t=s.replace(reCheck,'');if(!list||list.type!=='ck'){flush();list={type:'ck',items:[]}}list.items.push(t);continue}
-    flush();
-    if(reDay.test(s)){out.push({type:'day',text:s.replace(/\s*:$/,'').toUpperCase()});continue}
-    if(reNum.test(s)&&isUpper(s)){out.push({type:'h1',text:s});continue}
-    if(isUpper(s)){out.push({type:'h2',text:s});continue}
-    const m=s.match(reLabel);
-    if(m&&s.length>m[0].length){out.push({type:'p',label:m[0].trim(),text:s.slice(m[0].length)});continue}
+    flush();if(reDay.test(s)){out.push({type:'day',text:s.replace(/\s*:$/,'').toUpperCase()});continue}
+    if(reNum.test(s)&&isUpper(s)){out.push({type:'h1',text:s});continue}if(isUpper(s)){out.push({type:'h2',text:s});continue}
+    const m=s.match(reLabel);if(m&&s.length>m[0].length){out.push({type:'p',label:m[0].trim(),text:s.slice(m[0].length)});continue}
     if(s.length<=70&&!/[.!?…]$/.test(s)&&/^[A-ZÀ-Ý]/.test(s)&&s.split(' ').length<=10){out.push({type:'h3',text:s});continue}
-    out.push({type:'p',text:s});
-  }
-  flush();return out;
-}
+    out.push({type:'p',text:s})}
+  flush();return out}
+function renderBody(text){let h='';for(const b of parse(text)){
+  if(b.type==='ul')h+='<ul>'+b.items.map(i=>`<li>${esc(i)}</li>`).join('')+'</ul>';else if(b.type==='ck')h+='<ul>'+b.items.map(i=>`<li class="ck">${esc(i)}</li>`).join('')+'</ul>';
+  else if(b.type==='p')h+=`<p>${b.label?'<b>'+esc(b.label)+'</b> ':''}${esc(b.text)}</p>`;else h+=`<div class="${b.type}">${esc(b.text)}</div>`}return h}
+function setMode(m){const rdr=m==='rdr';if(rdr){const v=f_body.value.trim();render.innerHTML=(v?renderBody(v):'<p class="tip">Rien à afficher.</p>')+(v?'<p class="tip">Toucher pour revenir à la saisie</p>':'')}
+  render.classList.toggle('hidden',!rdr);f_body.classList.toggle('hidden',rdr);segTxt.classList.toggle('on',!rdr);segRdr.classList.toggle('on',rdr);if(!rdr)setTimeout(()=>f_body.focus(),50)}
+
+/* ================= photos ================= */
+const isHeic=f=>/heic|heif/i.test(f.type)||/\.hei[cf]$/i.test(f.name||'');let heicLib=null;
+function loadHeic(){if(window.heic2any)return Promise.resolve(true);if(heicLib)return heicLib;heicLib=new Promise(r=>{const s=document.createElement('script');s.src='../heic2any.min.js';s.onload=()=>r(true);s.onerror=()=>{heicLib=null;r(false)};document.head.appendChild(s)});return heicLib}
+async function heicToJpeg(f){if(!await loadHeic())throw new Error('HEIC');let o=await heic2any({blob:f,toType:'image/jpeg',quality:0.9});return Array.isArray(o)?o[0]:o}
+function compress(file){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=()=>{URL.revokeObjectURL(url);const max=+settings.px||1280;let w=img.naturalWidth,h=img.naturalHeight;const r=Math.min(1,max/Math.max(w,h));w=Math.round(w*r);h=Math.round(h*r);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);const out=c.toDataURL('image/jpeg',+settings.q||0.72);res({url:out,w,h,size:Math.round(out.length*0.75)})};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej()};img.src=url})}
+async function addPhotos(files){const arr=[...files];if(!arr.length)return;let ok=0,ko=[];toast('Traitement…');
+  for(let f of arr){try{if(isHeic(f))f=await heicToJpeg(f);let d;try{d=await compress(f)}catch(e){if(!isHeic(f)){f=await heicToJpeg(f);d=await compress(f)}else throw e}cur.photos.push({id:uid(),data:d.url,w:d.w,h:d.h,size:d.size,cap:''});ok++}catch(e){ko.push(f.name||'photo')}}
+  renderPhotos();mark();if(ok)await save(true);toast(ko.length?`${ok} ajoutée(s), ${ko.length} illisible(s)`:`${ok} photo${ok>1?'s':''} ajoutée${ok>1?'s':''}`)}
+function renderPhotos(){document.getElementById('photos').innerHTML=(cur.photos||[]).map((p,i)=>`<div class="ph"><img src="${p.data}" alt=""><button class="x" onclick="cur.photos.splice(${i},1);renderPhotos();mark()">×</button><input placeholder="Légende…" value="${esc(p.cap)}" oninput="cur.photos[${i}].cap=this.value;mark()"></div>`).join('')}
 
 
 /* =========================================================
-   Vidéos : fichier stocké temporairement en IndexedDB, envoyé sur le
-   Drive (dossier Vidéos) par envoi reprenable, rendu public par lien.
-   Le rapport ne conserve que vignette, durée, identifiant et lien.
+   Pièces jointes : blob local (IndexedDB) jusqu'à l'envoi.
+   audio/doc → Drive (sous-dossier « Pièces jointes », lien public)
+   vidéo → YouTube non répertoriée (jeton YouTube de l'app Rapports)
    ========================================================= */
-const vdb={db:null,
-  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('rapports-videos-'+COMPANY_KEY,1);
-    r.onupgradeneeded=e=>e.target.result.createObjectStore('blobs');r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
-  async put(id,blob){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').put(blob,id);t.oncomplete=res;t.onerror=e=>rej(e.target.error)})},
+const bdb={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('notes-blobs-'+COMPANY_KEY,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('blobs');r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async put(id,b){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').put(b,id);t.oncomplete=res;t.onerror=e=>rej(e.target.error)})},
   async get(id){const d=await this.open();return new Promise((res,rej)=>{const r=d.transaction('blobs').objectStore('blobs').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})},
-  async del(id){const d=await this.open();return new Promise(res=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').delete(id);t.oncomplete=res;t.onerror=res})}
-};
+  async del(id){const d=await this.open();return new Promise(res=>{const t=d.transaction('blobs','readwrite');t.objectStore('blobs').delete(id);t.oncomplete=res;t.onerror=res})}};
 const fmtSize=b=>b>1e9?(b/1e9).toFixed(2)+' Go':b>1e6?Math.round(b/1e6)+' Mo':Math.round(b/1e3)+' Ko';
 const fmtDur=s=>s?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'';
-function videoThumb(file){return new Promise(res=>{
-  const url=URL.createObjectURL(file);const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';v.src=url;
-  let finished=false;const done=(thumb,dur,tw,th)=>{if(finished)return;finished=true;URL.revokeObjectURL(url);res({thumb,dur,tw:tw||0,th:th||0})};
-  const timer=setTimeout(()=>done('',v.duration||0),8000);
+const kindOf=f=>/^audio\//.test(f.type)?'audio':/^video\//.test(f.type)?'video':/\.(mp4|mov|m4v|3gp)$/i.test(f.name||'')?'video':/\.(m4a|mp3|aac|ogg|opus|wav|webm)$/i.test(f.name||'')?'audio':'doc';
+const icon=f=>f.kind==='audio'?'🎙':f.kind==='video'?'🎥':/pdf/i.test(f.mime)?'📄':/word|docx?$/i.test(f.mime+f.name)?'📝':/excel|sheet|xlsx?$|csv$/i.test(f.mime+f.name)?'📊':'📎';
+function videoThumb(file){return new Promise(res=>{const url=URL.createObjectURL(file);const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';v.src=url;let fin=false;
+  const done=(thumb,dur,tw,th)=>{if(fin)return;fin=true;URL.revokeObjectURL(url);res({thumb,dur,tw:tw||0,th:th||0})};const timer=setTimeout(()=>done('',v.duration||0),8000);
   v.onloadedmetadata=()=>{v.currentTime=Math.min(1,(v.duration||2)/2)};
-  v.onseeked=()=>{try{const s=Math.min(1,480/(v.videoWidth||480));const c=document.createElement('canvas');c.width=Math.round((v.videoWidth||480)*s);c.height=Math.round((v.videoHeight||270)*s);
-    c.getContext('2d').drawImage(v,0,0,c.width,c.height);clearTimeout(timer);done(c.toDataURL('image/jpeg',0.7),v.duration||0,c.width,c.height)}catch(e){clearTimeout(timer);done('',v.duration||0)}};
-  v.onerror=()=>{clearTimeout(timer);done('',0)};
-})}
-async function addVideos(files){
-  const arr=[...files];if(!arr.length)return;cur.videos=cur.videos||[];
-  for(const f of arr){
-    if(f.size>1.5e9){toast('Vidéo trop volumineuse (> 1,5 Go) : '+f.name);continue}
-    toast('Préparation de la vidéo…');
-    const {thumb,dur,tw,th}=await videoThumb(f);
-    const v={id:uid(),name:f.name||('video-'+Date.now()+'.mp4'),mime:f.type||'video/mp4',size:f.size,dur,thumb,tw,th,cap:'',driveId:'',link:'',status:'pending'};
-    await vdb.put(v.id,f);cur.videos.push(v);
-  }
-  renderVideos();mark();await save(true);videoUploader.run();
-}
-function renderVideos(){
-  const el=document.getElementById('videos');const vs=cur.videos||[];
-  el.innerHTML=vs.map((v,i)=>{const p=videoUploader.progress[v.id];
-    const st=v.status==='done'?'Sur YouTube':v.status==='uploading'?`Envoi ${Math.round((p||0)*100)} %`:v.status==='error'?'Échec – réessai auto':v.status==='quota'?'Quota YouTube atteint – demain':v.status==='auth'?'Autorisation YouTube requise':'En attente de réseau';
-    return `<div class="ph vid">
-    ${v.thumb?`<img src="${v.thumb}" alt="">`:'<div style="aspect-ratio:4/3;background:#333"></div>'}<div class="play"></div>
-    <span class="st ${v.status==='error'?'err':''}">${st} · ${fmtSize(v.size)}${v.dur?' · '+fmtDur(v.dur):''}</span>
-    ${v.status==='uploading'?`<div class="prog"><i style="width:${Math.round((p||0)*100)}%"></i></div>`:''}
-    <button class="x" onclick="removeVideo(${i})" aria-label="Retirer">×</button>
-    <input placeholder="Légende…" value="${esc(v.cap)}" oninput="cur.videos[${i}].cap=this.value;mark()"></div>`}).join('');
-  const needAuth=vs.some(v=>v.status==='auth');document.getElementById('ytAuth').classList.toggle('hidden',!needAuth);
-}
-async function removeVideo(i){const v=cur.videos[i];if(!confirm('Retirer cette vidéo du rapport'+(v.ytId?' et de YouTube':v.driveId?' et du Drive':'')+' ?'))return;
-  cur.videos.splice(i,1);await vdb.del(v.id);if(v.ytId)sync.removeYouTube(v.ytId).catch(()=>{});else if(v.driveId)sync.remove(v.driveId).catch(()=>{});renderVideos();mark();await save(true)}
+  v.onseeked=()=>{try{const s=Math.min(1,480/(v.videoWidth||480));const c=document.createElement('canvas');c.width=Math.round((v.videoWidth||480)*s);c.height=Math.round((v.videoHeight||270)*s);c.getContext('2d').drawImage(v,0,0,c.width,c.height);clearTimeout(timer);done(c.toDataURL('image/jpeg',0.7),v.duration||0,c.width,c.height)}catch(e){clearTimeout(timer);done('',v.duration||0)}};
+  v.onerror=()=>{clearTimeout(timer);done('',0)}})}
+function audioDur(file){return new Promise(res=>{const url=URL.createObjectURL(file);const a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>{URL.revokeObjectURL(url);res(isFinite(a.duration)?a.duration:0)};a.onerror=()=>{URL.revokeObjectURL(url);res(0)};a.src=url;setTimeout(()=>res(0),4000)})}
+async function addFiles(files,opts={}){const arr=[...files];if(!arr.length)return;cur.files=cur.files||[];
+  for(const f of arr){if(f.size>1.5e9){toast('Fichier trop volumineux (> 1,5 Go) : '+f.name);continue}
+    const kind=opts.kind||kindOf(f);const it={id:uid(),name:f.name||(kind+'-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+(kind==='audio'?'.webm':kind==='video'?'.mp4':'')),mime:f.type||'application/octet-stream',size:f.size,kind,cap:'',dur:0,thumb:'',tw:0,th:0,driveId:'',ytId:'',link:'',status:'pending'};
+    if(kind==='video'){toast('Préparation de la vidéo…');Object.assign(it,await videoThumb(f))}else if(kind==='audio')it.dur=await audioDur(f);
+    await bdb.put(it.id,f);cur.files.push(it)}
+  renderFiles();mark();await save(true);uploader.run()}
+function renderFiles(){const el=document.getElementById('files');const fs=cur.files||[];
+  el.innerHTML=fs.map((f,i)=>{const p=uploader.progress[f.id];const st=f.status==='done'?(f.kind==='video'?'Sur YouTube':'Sur le Drive'):f.status==='uploading'?`Envoi ${Math.round((p||0)*100)} %`:f.status==='error'?'Échec – réessai auto':f.status==='quota'?'Quota YouTube atteint – demain':f.status==='auth'?'Autorisation YouTube requise':'En attente de réseau';
+    return `<div class="file"><div class="ic">${f.thumb?`<img src="${f.thumb}" alt="">`:icon(f)}</div>
+    <div class="n"><b>${esc(f.name)}</b><span class="${f.status==='done'?'ok':f.status==='error'||f.status==='auth'?'err':''}">${st} · ${fmtSize(f.size)}${f.dur?' · '+fmtDur(f.dur):''}</span><input placeholder="Légende…" value="${esc(f.cap)}" oninput="cur.files[${i}].cap=this.value;mark()"></div>
+    <button class="pl" onclick="openFile(${i})" title="Ouvrir">▶</button><button class="x" onclick="removeFile(${i})" aria-label="Retirer">×</button>
+    ${f.status==='uploading'?`<div class="prog"><i style="width:${Math.round((p||0)*100)}%"></i></div>`:''}</div>`}).join('');
+  document.getElementById('ytAuth').classList.toggle('hidden',!fs.some(f=>f.status==='auth'))}
+async function openFile(i){const f=cur.files[i];const b=await bdb.get(f.id);
+  if(b){const u=URL.createObjectURL(b);if(f.kind==='audio'||f.kind==='video'){const w=window.open('','_blank');if(w){w.document.write(`<title>${esc(f.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;height:100vh"><${f.kind} controls autoplay src="${u}" style="max-width:100%;max-height:100%"></${f.kind}></body>`)}else window.open(u)}else window.open(u,'_blank');return}
+  if(f.link)window.open(f.link,'_blank');else toast('Fichier pas encore disponible')}
+async function removeFile(i){const f=cur.files[i];if(!confirm('Retirer « '+f.name+' » de la note'+(f.ytId?' et de YouTube':f.driveId?' et du Drive':'')+' ?'))return;
+  cur.files.splice(i,1);await bdb.del(f.id);if(f.ytId)sync.removeYouTube(f.ytId).catch(()=>{});else if(f.driveId)sync.remove(f.driveId).catch(()=>{});renderFiles();mark();await save(true)}
 
-const videoUploader={progress:{},running:false,stop:'',
-  async authorize(){await sync.redirectAuth('yt')},
-  async _authorizeOld(){const tok=await sync.getToken(true);if(!tok){toast('Autorisation refusée');return}this.stop='';(cur?cur.videos:[]).forEach(v=>{if(v.status==='auth')v.status='pending'});reports.forEach(r=>(r.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'}));renderVideos();this.run()},
-  async run(){
-    if(this.running||!navigator.onLine||!sync.configured()||!sync.connected())return;if(this.stop==='quota')return;this.running=true;this.stop='';
-    try{
-      const list=reports.slice();if(cur&&!list.some(x=>x.id===cur.id))list.push(cur);
-      for(const r of list){
-        for(const v of (r.videos||[])){
-          if(v.status==='done'||!v.id)continue;
-          const blob=await vdb.get(v.id);if(!blob){if(!v.link)v.status='error';continue}
-          try{
-            v.status='uploading';this.progress[v.id]=0;if(cur&&cur.id===r.id)renderVideos();
-            const title=[settings.name,r.num?'Rapport '+r.num:'',r.addr,fmtDate(r.date)].filter(Boolean).join(' – ').slice(0,100);
-            const meta={snippet:{title,description:[settings.name,r.addr,r.obj,v.cap].filter(Boolean).join('\n')},status:{privacyStatus:'unlisted',selfDeclaredMadeForKids:false}};
-            const id=await sync.uploadYouTube(meta,blob,v.mime,p=>{this.progress[v.id]=p;if(cur&&cur.id===r.id)renderVideos()});
-            v.ytId=id;v.link=`https://youtu.be/${id}`;v.status='done';await vdb.del(v.id);
-            r.updatedAt=Date.now();await store.putReport(r);
-            if(cur&&cur.id===r.id&&cur!==r){const cv=cur.videos.find(x=>x.id===v.id);if(cv)Object.assign(cv,v)}
-            sync.schedule();
-          }catch(e){console.warn('upload vidéo',e);
-            if(e.message==='quota'){v.status='quota';this.stop='quota';break}
-            if(e.message==='scope'||e.message==='noauth'){v.status='auth';this.stop='auth';break}
-            v.status='error'}
-          if(cur&&cur.id===r.id)renderVideos();
-        }
+/* --- enregistreur audio --- */
+const recorder={mr:null,chunks:[],t0:0,timer:null,
+  async toggle(){if(this.mr){this.mr.stop();return}
+    if(!navigator.mediaDevices||!window.MediaRecorder){toast('Enregistrement audio non disponible sur ce navigateur');return}
+    try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+      this.mr=new MediaRecorder(stream,mime?{mimeType:mime}:{});this.chunks=[];this.t0=Date.now();
+      this.mr.ondataavailable=e=>{if(e.data.size)this.chunks.push(e.data)};
+      this.mr.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());clearInterval(this.timer);const type=this.mr.mimeType||mime||'audio/webm';const ext=/mp4/.test(type)?'m4a':/ogg/.test(type)?'ogg':'webm';
+        const blob=new Blob(this.chunks,{type});const dur=(Date.now()-this.t0)/1000;this.mr=null;btnRec.classList.remove('rec');btnRec.textContent='🎙 Enregistrer';
+        if(blob.size<1000){toast('Enregistrement vide');return}
+        const f=new File([blob],'memo-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.'+ext,{type});await addFiles([f],{kind:'audio'});const it=cur.files[cur.files.length-1];if(it&&!it.dur){it.dur=dur;renderFiles();save(true)}};
+      this.mr.start(1000);btnRec.classList.add('rec');this.timer=setInterval(()=>{btnRec.textContent='⏹ Arrêter · '+fmtDur((Date.now()-this.t0)/1000)},500);btnRec.textContent='⏹ Arrêter · 0:00';
+    }catch(e){toast('Micro refusé ou indisponible')}}};
+
+/* --- envoi en arrière-plan --- */
+const uploader={progress:{},running:false,stop:'',
+  async run(){if(this.running||!navigator.onLine||!sync.configured()||!sync.connected()||this.stop==='quota')return;this.running=true;
+    try{const list=notes.slice();if(cur&&!list.some(x=>x.id===cur.id))list.push(cur);
+      for(const n of list){if(n.deletedAt)continue;for(const f of (n.files||[])){if(f.status==='done')continue;const blob=await bdb.get(f.id);if(!blob){if(!f.link)f.status='error';continue}
+        try{f.status='uploading';this.progress[f.id]=0;if(cur&&cur.id===n.id)renderFiles();const prog=p=>{this.progress[f.id]=p;if(cur&&cur.id===n.id)renderFiles()};
+          if(f.kind==='video'){const title=[settings.name,n.title||'Note',fmtDT(n.createdAt)].filter(Boolean).join(' – ').slice(0,100);
+            const id=await sync.uploadYouTube({snippet:{title,description:[settings.name,n.title,f.cap].filter(Boolean).join('\n')},status:{privacyStatus:'unlisted',selfDeclaredMadeForKids:false}},blob,f.mime,prog);f.ytId=id;f.link='https://youtu.be/'+id}
+          else{await sync.ensureFolder();await sync.ensureAttachFolder();const id=await sync.uploadResumableDrive(f.name,blob,f.mime,sync.attachFolderId,prog);
+            await sync.api(`drive/v3/files/${id}/permissions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'anyone',role:'reader'})});f.driveId=id;f.link=`https://drive.google.com/file/d/${id}/view`}
+          f.status='done';await bdb.del(f.id);n.updatedAt=Date.now();await store.put('notes',n);if(cur&&cur.id===n.id&&cur!==n){const cf=cur.files.find(x=>x.id===f.id);if(cf)Object.assign(cf,f)}sync.schedule();
+        }catch(e){console.warn('envoi',e);if(e.message==='quota'){f.status='quota';this.stop='quota';break}if(e.message==='scope'){f.status='auth'}else if(e.message==='noauth'){f.status='pending';break}else f.status='error'}
+        if(cur&&cur.id===n.id)renderFiles()}}}
+    finally{this.running=false}}};
+window.addEventListener('online',()=>uploader.run());
+
+
+/* =========================================================
+   Lien note ↔ rapport : lecture/écriture de la base des Rapports
+   (IndexedDB « rapports-intervention-<société> », même origine).
+   ========================================================= */
+const repDb={db:null,
+  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('rapports-intervention-'+COMPANY_KEY,1);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('reports'))d.createObjectStore('reports',{keyPath:'id'});if(!d.objectStoreNames.contains('clients'))d.createObjectStore('clients',{keyPath:'id'})};
+    r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async all(){const d=await this.open();return new Promise(res=>{const r=d.transaction('reports').objectStore('reports').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([])})},
+  async put(r){const d=await this.open();return new Promise(res=>{const t=d.transaction('reports','readwrite');t.objectStore('reports').put(r);t.oncomplete=res;t.onerror=res})}};
+let repCache=[];
+const repLabel=r=>(r.addr||'(sans adresse)')+(r.num?' · n° '+r.num:'');
+const repDate=r=>r.date?new Date(r.date+'T00:00:00').toLocaleDateString('fr-FR'):'';
+async function renderLinkedReports(){repCache=await repDb.all();const el=document.getElementById('linkedReports');const ids=cur.reportIds||[];
+  repCache.forEach(r=>{if((r.noteIds||[]).includes(cur.id)&&!ids.includes(r.id))ids.push(r.id)});cur.reportIds=ids;
+  el.innerHTML=ids.map(id=>{const r=repCache.find(x=>x.id===id);return `<div class="lnk"><div class="n"><b>${esc(r?repLabel(r):'Rapport absent de ce téléphone')}</b><span>${r?repDate(r)+(r.obj?' · '+r.obj:''):id}</span></div>
+    ${r?`<button onclick="location.href='../#rapport=${id}'">Ouvrir</button>`:''}<button class="del" onclick="unlinkReport('${id}')">×</button></div>`}).join('')||'<p class="hint" style="margin:0 0 8px;font-size:13px;color:var(--ink3)">Aucun rapport lié.</p>'}
+async function linkReportDialog(){repCache=await repDb.all();dlgRepSearch.value='';renderReportChooser();dlgReports.showModal()}
+function renderReportChooser(){const q=(dlgRepSearch.value||'').toLowerCase();const el=document.getElementById('repChooser');
+  const rows=repCache.filter(r=>!q||(repLabel(r)+' '+(r.obj||'')).toLowerCase().includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50);
+  el.innerHTML=rows.length?rows.map(r=>`<button class="chooser ${(cur.reportIds||[]).includes(r.id)?'on':''}" onclick="toggleRepLink('${r.id}')"><b>${esc(repLabel(r))}</b><span>${repDate(r)}${r.obj?' · '+esc(r.obj):''}</span></button>`).join(''):'<p class="hint">Aucun rapport sur ce téléphone.</p>'}
+async function writeBackRep(repId,add){const r=repCache.find(x=>x.id===repId);if(!r)return;r.noteIds=r.noteIds||[];const i=r.noteIds.indexOf(cur.id);
+  if(add&&i<0)r.noteIds.push(cur.id);else if(!add&&i>=0)r.noteIds.splice(i,1);else return;r.updatedAt=Date.now();await repDb.put(r)}
+async function toggleRepLink(id){cur.reportIds=cur.reportIds||[];const i=cur.reportIds.indexOf(id);if(i>=0)cur.reportIds.splice(i,1);else cur.reportIds.push(id);
+  await writeBackRep(id,i<0);mark();await save(true);renderReportChooser();renderLinkedReports()}
+async function unlinkReport(id){cur.reportIds=(cur.reportIds||[]).filter(x=>x!==id);await writeBackRep(id,false);mark();await save(true);renderLinkedReports()}
+function openCreate(){readEditor();cr_obj.disabled=!cur.title;cr_text.disabled=!(cur.body||'').trim();cr_photos.disabled=!(cur.photos||[]).length;cr_videos.disabled=!(cur.files||[]).some(f=>f.kind==='video');cr_files.disabled=!(cur.files||[]).some(f=>f.kind!=='video');dlgCreate.showModal()}
+async function createReport(){readEditor();await save(true);repCache=await repDb.all();
+  const today=new Date();const y=today.getFullYear();const num=`${y}-${String(repCache.filter(r=>(r.num||'').startsWith(y+'-')).length+1).padStart(3,'0')}`;
+  const r={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:today.toISOString().slice(0,10),num,clientId:'',addr:'',obj:'',text:'',photos:[],videos:[],files:[],noteIds:[cur.id]};
+  if(cr_obj.checked&&!cr_obj.disabled)r.obj=cur.title;
+  if(cr_text.checked&&!cr_text.disabled)r.text=(cur.title&&!(cr_obj.checked)?cur.title.toUpperCase()+'\n':'')+cur.body.trim();
+  if(cr_photos.checked&&!cr_photos.disabled)r.photos=(cur.photos||[]).map(p=>Object.assign({},p,{id:uid()}));
+  let skipped=0;
+  if(cr_videos.checked&&!cr_videos.disabled)for(const f of (cur.files||[]).filter(f=>f.kind==='video')){if(!f.link){skipped++;continue}r.videos.push({id:uid(),name:f.name,mime:f.mime,size:f.size,dur:f.dur,thumb:f.thumb,tw:f.tw,th:f.th,cap:f.cap,ytId:f.ytId,link:f.link,status:'done'})}
+  if(cr_files.checked&&!cr_files.disabled)for(const f of (cur.files||[]).filter(f=>f.kind!=='video')){if(!f.link){skipped++;continue}r.files.push({id:uid(),name:f.name,mime:f.mime,size:f.size,kind:f.kind,dur:f.dur,cap:f.cap,driveId:f.driveId,link:f.link,status:'done',fromNote:cur.id})}
+  await repDb.put(r);cur.reportIds=cur.reportIds||[];cur.reportIds.push(r.id);await save(true);dlgCreate.close();
+  if(skipped)alert(`${skipped} fichier(s) pas encore envoyé(s) n'ont pas été repris.`);
+  location.href='../#rapport='+r.id}
+
+
+/* =========================================================
+   Import Evernote (.enex) : ENML → texte brut mis en forme,
+   images → photos, autres ressources → pièces jointes (Drive).
+   ========================================================= */
+/* MD5 compact (pour relier <en-media hash> aux ressources) */
+function md5(u8){const n=u8.length;const nw=(((n+8)>>6)+1)<<4;const w=new Uint32Array(nw);for(let i=0;i<n;i++)w[i>>2]|=u8[i]<<((i&3)<<3);w[n>>2]|=0x80<<((n&3)<<3);w[nw-2]=(n*8)>>>0;w[nw-1]=Math.floor(n*8/4294967296);
+  const K=new Int32Array(64),S=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296);
+  let a0=1732584193,b0=-271733879,c0=-1732584194,d0=271733878;
+  for(let i=0;i<nw;i+=16){let a=a0,b=b0,c=c0,d=d0;for(let j=0;j<64;j++){let f,g;if(j<16){f=(b&c)|(~b&d);g=j}else if(j<32){f=(d&b)|(~d&c);g=(5*j+1)&15}else if(j<48){f=b^c^d;g=(3*j+5)&15}else{f=c^(b|~d);g=(7*j)&15}
+    const x=(a+f+K[j]+w[i+g])|0;const s=S[((j>>4)<<2)+(j&3)];const t2=d;d=c;c=b;b=(b+((x<<s)|(x>>>(32-s))))|0;a=t2}a0=(a0+a)|0;b0=(b0+b)|0;c0=(c0+c)|0;d0=(d0+d)|0}
+  return [a0,b0,c0,d0].map(x=>{let s='';for(let i=0;i<4;i++)s+=((x>>>(i*8))&255).toString(16).padStart(2,'0');return s}).join('')}
+const b64ToU8=b64=>{const bin=atob(b64.replace(/\s+/g,''));const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u};
+const enDate=s=>{const m=(s||'').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]):Date.now()};
+/* ENML → texte avec nos conventions (MAJUSCULES = titre, - puce, v coche) */
+function enmlToText(html,mediaCb){
+  const doc=new DOMParser().parseFromString('<div>'+html.replace(/<\?xml[^>]*>|<!DOCTYPE[^>]*>/g,'')+'</div>','text/html');
+  const root=doc.body.firstElementChild||doc.body;const out=[];let line='';
+  const flush=()=>{const s=line.replace(/[ \t\u00a0]+/g,' ').trim();if(s)out.push(s);line=''};
+  function walk(node,ctx){
+    if(node.nodeType===3){line+=node.nodeValue.replace(/\s+/g,' ');return}
+    if(node.nodeType!==1)return;const tag=node.tagName.toLowerCase();
+    if(tag==='en-media'){flush();const r=mediaCb(node.getAttribute('hash'));if(r)out.push(r);node.childNodes.forEach(c=>walk(c,ctx));return}
+    if(tag==='en-todo'){line=(node.getAttribute('checked')==='true'?'v ':'- ')+line.trimStart();node.childNodes.forEach(c=>walk(c,ctx));return}
+    if(tag==='en-crypt'||tag==='script'||tag==='style')return;
+    if(tag==='br'){flush();return}
+    if(tag==='hr'){flush();out.push('---');return}
+    if(/^h[1-6]$/.test(tag)){flush();const t=node.textContent.replace(/\s+/g,' ').trim();if(t)out.push('',t.toUpperCase());return}
+    if(tag==='li'){flush();const wasLi=ctx.li;ctx.li=true;const prefix=ctx.ol?(++ctx.n)+'. ':'- ';line=prefix;let hadTodo=/^\s*<en-todo/i.test(node.innerHTML);if(hadTodo)line='';node.childNodes.forEach(c=>walk(c,ctx));flush();ctx.li=wasLi;return}
+    if(tag==='ul'||tag==='ol'){flush();const sub={li:false,ol:tag==='ol',n:0};node.childNodes.forEach(c=>walk(c,sub));return}
+    if(tag==='table'){flush();node.querySelectorAll('tr').forEach(tr=>{const cells=[...tr.children].map(td=>td.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);if(cells.length)out.push('- '+cells.join(' | '))});return}
+    if(tag==='a'){node.childNodes.forEach(c=>walk(c,ctx));const href=node.getAttribute('href')||'';const txt=node.textContent.trim();if(href&&!/^(evernote|#)/.test(href)&&txt&&!txt.startsWith('http')&&href!==txt)line+=' ('+href+')';return}
+    const block=/^(div|p|blockquote|pre|section|article|center|en-note|tr|td|th|dd|dt|dl)$/.test(tag);
+    if(block)flush();node.childNodes.forEach(c=>walk(c,ctx));if(block)flush();
+  }
+  walk(root,{});flush();
+  // compacter : pas plus d'une ligne vide consécutive
+  return out.join('\n').trim();
+}
+const enex={files:[],cancelled:false,
+  pick(list){this.files=[...list].filter(f=>/\.enex$/i.test(f.name)||/xml/.test(f.type));if(!this.files.length){toast('Choisissez des fichiers .enex');return}
+    document.getElementById('enexFiles').innerHTML=this.files.map((f,i)=>`<div class="enf"><span title="${esc(f.name)}">📄 ${esc(f.name)} · ${fmtSize(f.size)}</span><input value="${esc(this.files.length===1&&/^(notes?|evernote|export)/i.test(f.name)?'Evernote':f.name.replace(/\.enex$/i,''))}" placeholder="Carnet" data-i="${i}"></div>`).join('');
+    enexProg.textContent='';enexGo.disabled=false;enexCancel.textContent='Annuler';this.cancelled=false;dlgEnex.showModal()},
+  cancel(){this.cancelled=true;dlgEnex.close()},
+  /* lit le fichier par morceaux et renvoie chaque <note>…</note> sans charger tout le fichier */
+  async *noteBlocks(file,onProgress){const CH=4*1024*1024;let off=0,buf='';const dec=new TextDecoder('utf-8');
+    while(off<file.size||buf.length){
+      if(off<file.size){const end=Math.min(off+CH,file.size);buf+=dec.decode(new Uint8Array(await file.slice(off,end).arrayBuffer()),{stream:true});off=end;onProgress&&onProgress(off/file.size)}
+      let s;while((s=buf.indexOf('<note>'))>=0||(s=buf.indexOf('<note '))>=0){const e=buf.indexOf('</note>',s);if(e<0)break;yield buf.slice(s,e+7);buf=buf.slice(e+7)}
+      if(off>=file.size){const s2=Math.max(buf.indexOf('<note>'),buf.indexOf('<note '));if(s2<0||buf.indexOf('</note>',s2)<0)break}
+      if(buf.length>64*1024*1024&&buf.indexOf('<note')<0)buf=buf.slice(-1024)}},
+  async run(){enexGo.disabled=true;enexCancel.textContent='Arrêter';const keepTags=en_tags.checked,keepFiles=en_files.checked;let total=0,imported=0,skipped=0,photos=0,att=0;
+    const existing=new Set(notes.map(n=>n.evernoteKey).filter(Boolean));
+    for(const [i,f] of this.files.entries()){if(this.cancelled)break;
+      const nbNameIn=(document.querySelector(`#enexFiles input[data-i="${i}"]`).value||'Evernote').trim();
+      let nb=notebooks.find(n=>n.name.toLowerCase()===nbNameIn.toLowerCase());if(!nb){nb={id:uid(),name:nbNameIn,updatedAt:Date.now()};await store.put('notebooks',nb);notebooks.push(nb)}
+      let k=0,pct=0;const p=new DOMParser();
+      for await(const block of this.noteBlocks(f,x=>pct=x)){if(this.cancelled)break;k++;total++;enexProg.textContent=`${f.name} : lecture ${Math.round(pct*100)} % · note ${k} · ${imported} importée(s)`;await new Promise(r=>setTimeout(r,0));
+        let nn;try{const x=p.parseFromString('<?xml version="1.0" encoding="UTF-8"?><en-export>'+block+'</en-export>','text/xml');nn=x.getElementsByTagName('note')[0];if(!nn||x.getElementsByTagName('parsererror').length)throw 0}catch(e){skipped++;continue}
+        const g=tag=>{const e=nn.getElementsByTagName(tag)[0];return e?e.textContent:''};
+        const title=g('title').trim();const created=enDate(g('created')),updated=enDate(g('updated'))||created;
+        const key=md5(new TextEncoder().encode(title+'|'+g('created')));if(existing.has(key)){skipped++;continue}
+        // ressources
+        const res={};for(const r of nn.getElementsByTagName('resource')){const dataEl=r.getElementsByTagName('data')[0];if(!dataEl)continue;let u8;try{u8=b64ToU8(dataEl.textContent)}catch(e){continue}
+          const mime=(r.getElementsByTagName('mime')[0]||{}).textContent||'application/octet-stream';const fn=(r.getElementsByTagName('file-name')[0]||{}).textContent||'';
+          const h=u8.length<40*1024*1024?md5(u8):'big'+Object.keys(res).length;res[h]={u8,mime,name:fn,used:false}}
+        const note={id:uid(),createdAt:created,updatedAt:updated,title,body:'',notebookId:nb.id,tags:[],pinned:false,reminder:'',remDone:false,photos:[],files:[],reportIds:[],deletedAt:null,evernoteKey:key};
+        if(keepTags)note.tags=[...nn.getElementsByTagName('tag')].map(e=>e.textContent.trim().toLowerCase()).filter(Boolean);
+        const rem=nn.getElementsByTagName('reminder-time')[0];if(rem){const d=new Date(enDate(rem.textContent));note.reminder=d.toISOString().slice(0,16);note.remDone=!!nn.getElementsByTagName('reminder-done-time')[0]}
+        const pending=[];// ressources à traiter après le texte
+        note.body=enmlToText(g('content'),hash=>{const r=res[hash];if(!r)return '';r.used=true;pending.push(r);return r.mime.startsWith('image/')?`[photo ${pending.length}]`:`[fichier : ${r.name||r.mime}]`});
+        Object.values(res).filter(r=>!r.used).forEach(r=>pending.push(r));
+        await new Promise(r=>setTimeout(r,0));
+        for(const r of pending){const blob=new File([r.u8],r.name||('evernote-'+uid()+(r.mime.startsWith('image/')?'.jpg':'')),{type:r.mime});
+          if(r.mime.startsWith('image/')){try{let fb=blob;if(isHeic(fb))fb=await heicToJpeg(fb);const d=await compress(fb);note.photos.push({id:uid(),data:d.url,w:d.w,h:d.h,size:d.size,cap:''});photos++}catch(e){}}
+          else if(keepFiles){const kind=kindOf(blob);const it={id:uid(),name:blob.name,mime:r.mime,size:blob.size,kind,cap:'',dur:0,thumb:'',tw:0,th:0,driveId:'',ytId:'',link:'',status:'pending'};if(kind==='video'){Object.assign(it,await videoThumb(blob))}await bdb.put(it.id,blob);note.files.push(it);att++}}
+        for(const r of pending)r.u8=null;
+        note.body=note.body.replace(/\n?\[photo \d+\]\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+        if(!note.title&&!note.body&&!note.photos.length&&!note.files.length){skipped++;continue}
+        await store.put('notes',note);notes.push(note);existing.add(key);imported++;
       }
-    }finally{this.running=false}
+    }
+    enexProg.textContent=`${this.cancelled?'Arrêté':'Terminé'} : ${imported} note(s) importée(s) sur ${total}${skipped?`, ${skipped} ignorée(s) (vides ou déjà importées)`:''}, ${photos} photo(s), ${att} pièce(s) jointe(s) à envoyer.`;
+    enexCancel.textContent='Fermer';enexGo.classList.add('hidden');setTimeout(()=>enexGo.classList.remove('hidden'),0);enexGo.disabled=true;
+    renderNotebooks();sync.schedule();setTimeout(()=>uploader.run(),3000);
   }
 };
-window.addEventListener('online',()=>videoUploader.run());
 
+/* ================= carnets ================= */
+let editingNb=null,nbFromEditor=false;
+function renderNotebooks(){const el=document.getElementById('nbList');
+  if(!notebooks.length){el.innerHTML='<div class="empty"><h2>Aucun carnet</h2><p>Les carnets regroupent vos notes par thème (chantiers, fournisseurs, idées…).</p></div>';return}
+  el.innerHTML=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(n=>{const c=live().filter(x=>x.notebookId===n.id).length;return `<div class="nbrow"><div class="n"><b>${esc(n.name)}</b><span>${c} note${c>1?'s':''}</span></div><button onclick="editNotebook('${n.id}')">Renommer</button><button class="del" onclick="deleteNotebook('${n.id}')">×</button></div>`}).join('')}
+function editNotebook(id,fromEditor){nbFromEditor=!!fromEditor;editingNb=id?notebooks.find(n=>n.id===id):null;dlgNbTitle.textContent=editingNb?'Renommer le carnet':'Nouveau carnet';nb_name.value=editingNb?editingNb.name:'';dlgNb.showModal();setTimeout(()=>nb_name.focus(),50)}
+async function saveNotebook(){const name=nb_name.value.trim();if(!name){nb_name.focus();return}const n=editingNb||{id:uid()};n.name=name;n.updatedAt=Date.now();await store.put('notebooks',n);if(!editingNb)notebooks.push(n);dlgNb.close();sync.schedule();
+  if(nbFromEditor){cur.notebookId=n.id;fillEditor();mark()}else renderNotebooks();toast('Carnet enregistré')}
+async function deleteNotebook(id){if(!confirm('Supprimer ce carnet ? Les notes qu\'il contient sont conservées (sans carnet).'))return;await store.del('notebooks',id);notebooks=notebooks.filter(n=>n.id!==id);
+  for(const n of notes.filter(x=>x.notebookId===id)){n.notebookId='';n.updatedAt=Date.now();await store.put('notes',n)}sync.markDeleted('nb',id);sync.schedule();renderNotebooks()}
 
-/* =========================================================
-   Lien note ↔ rapport. Les notes vivent dans la base de la page Notes
-   (IndexedDB « notes-<société> ») ; on la lit et on y écrit le lien retour.
-   ========================================================= */
-const notesDb={db:null,
-  open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('notes-'+COMPANY_KEY,1);
-    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('notes'))d.createObjectStore('notes',{keyPath:'id'});if(!d.objectStoreNames.contains('notebooks'))d.createObjectStore('notebooks',{keyPath:'id'})};
-    r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
-  async all(){const d=await this.open();return new Promise(res=>{const r=d.transaction('notes').objectStore('notes').getAll();r.onsuccess=()=>res((r.result||[]).filter(n=>!n.deletedAt));r.onerror=()=>res([])})},
-  async put(n){const d=await this.open();return new Promise(res=>{const t=d.transaction('notes','readwrite');t.objectStore('notes').put(n);t.oncomplete=res;t.onerror=res})}};
-let notesCache=[];
-async function loadNotes(){notesCache=await notesDb.all();return notesCache}
-const noteTitle=n=>n.title||((n.body||'').split('\n').map(s=>s.trim()).find(Boolean)||'(sans titre)');
-async function renderLinkedNotes(){await loadNotes();const el=document.getElementById('linkedNotes');const ids=cur.noteIds||[];
-  // union avec les notes qui déclarent ce rapport
-  notesCache.forEach(n=>{if((n.reportIds||[]).includes(cur.id)&&!ids.includes(n.id))ids.push(n.id)});cur.noteIds=ids;
-  el.innerHTML=ids.map(id=>{const n=notesCache.find(x=>x.id===id);return `<div class="lnk"><div class="n"><b>${esc(n?noteTitle(n):'Note absente de ce téléphone')}</b><span>${n?new Date(n.updatedAt).toLocaleDateString('fr-FR')+' · '+(n.photos||[]).length+' photo(s) · '+(n.files||[]).length+' PJ':id}</span></div>
-    ${n?`<button onclick="openTake('${id}')">Reprendre</button><button onclick="location.href='./notes/#note=${id}'">Ouvrir</button>`:''}<button class="del" onclick="unlinkNote('${id}')">×</button></div>`}).join('')||'<p class="hint" style="margin:0 0 8px">Aucune note liée.</p>'}
-async function linkNoteDialog(){await loadNotes();dlgNotesSearch.value='';renderNoteChooser();dlgNotes.showModal()}
-function renderNoteChooser(){const q=(dlgNotesSearch.value||'').toLowerCase();const el=document.getElementById('noteChooser');
-  const rows=notesCache.filter(n=>!q||(noteTitle(n)+' '+n.body+' '+(n.tags||[]).join(' ')).toLowerCase().includes(q)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,50);
-  el.innerHTML=rows.length?rows.map(n=>`<button class="chooser ${(cur.noteIds||[]).includes(n.id)?'on':''}" onclick="toggleLink('${n.id}')"><b>${esc(noteTitle(n))}</b><span>${new Date(n.updatedAt).toLocaleDateString('fr-FR')}${(n.tags||[]).length?' · '+n.tags.map(t=>'#'+t).join(' '):''}</span></button>`).join(''):'<p class="hint">Aucune note. Créez-en dans la page Notes.</p>'}
-async function toggleLink(id){cur.noteIds=cur.noteIds||[];const i=cur.noteIds.indexOf(id);if(i>=0)cur.noteIds.splice(i,1);else cur.noteIds.push(id);
-  await writeBackLink(id,i<0);mark();await save(true);renderNoteChooser();renderLinkedNotes()}
-async function unlinkNote(id){cur.noteIds=(cur.noteIds||[]).filter(x=>x!==id);await writeBackLink(id,false);mark();await save(true);renderLinkedNotes()}
-async function writeBackLink(noteId,add){const n=notesCache.find(x=>x.id===noteId);if(!n)return;n.reportIds=n.reportIds||[];const i=n.reportIds.indexOf(cur.id);
-  if(add&&i<0)n.reportIds.push(cur.id);else if(!add&&i>=0)n.reportIds.splice(i,1);else return;n.updatedAt=Date.now();await notesDb.put(n)}
-let takeId=null;
-function openTake(id){takeId=id;const n=notesCache.find(x=>x.id===id);takeTitle.textContent=noteTitle(n);
-  tk_photos.disabled=!(n.photos||[]).length;tk_videos.disabled=!(n.files||[]).some(f=>f.kind==='video');tk_files.disabled=!(n.files||[]).some(f=>f.kind!=='video');tk_text.disabled=!(n.body||'').trim();dlgTake.showModal()}
-async function takeFromNote(){const n=notesCache.find(x=>x.id===takeId);if(!n)return;let added=[];readEditor();
-  if(tk_text.checked&&!tk_text.disabled){const t=(n.title?n.title.toUpperCase()+'\n':'')+(n.body||'').trim();cur.text=(cur.text.trim()?cur.text.replace(/\s+$/,'')+'\n\n':'')+t;f_text.value=cur.text;added.push('texte')}
-  if(tk_photos.checked&&!tk_photos.disabled){let c=0;for(const p of n.photos||[]){if(!cur.photos.some(x=>x.data===p.data)){cur.photos.push(Object.assign({},p,{id:uid()}));c++}}if(c)added.push(c+' photo(s)')}
-  let skipped=0;
-  if(tk_videos.checked&&!tk_videos.disabled){let c=0;for(const f of (n.files||[]).filter(f=>f.kind==='video')){if(!f.link){skipped++;continue}if(!(cur.videos||[]).some(v=>v.link===f.link)){cur.videos.push({id:uid(),name:f.name,mime:f.mime,size:f.size,dur:f.dur,thumb:f.thumb,tw:f.tw,th:f.th,cap:f.cap,ytId:f.ytId,link:f.link,status:'done'});c++}}if(c)added.push(c+' vidéo(s)')}
-  if(tk_files.checked&&!tk_files.disabled){let c=0;cur.files=cur.files||[];for(const f of (n.files||[]).filter(f=>f.kind!=='video')){if(!f.link){skipped++;continue}if(!cur.files.some(x=>x.link===f.link)){cur.files.push({id:uid(),name:f.name,mime:f.mime,size:f.size,kind:f.kind,dur:f.dur,cap:f.cap,driveId:f.driveId,link:f.link,status:'done',fromNote:n.id});c++}}if(c)added.push(c+' pièce(s) jointe(s)')}
-  if(!(cur.noteIds||[]).includes(n.id)){cur.noteIds.push(n.id);await writeBackLink(n.id,true)}
-  dlgTake.close();renderPhotos();renderVideos();renderRFiles();renderLinkedNotes();mark();await save(true);
-  toast((added.length?'Repris : '+added.join(', '):'Rien à reprendre')+(skipped?` · ${skipped} fichier(s) pas encore envoyé(s), ignoré(s)`:''))}
-/* pièces jointes du rapport (liens Drive repris de notes) */
-const fmtSizeR=b=>b>1e6?Math.round(b/1e6)+' Mo':Math.round(b/1e3)+' Ko';
-function renderRFiles(){const el=document.getElementById('rfiles');const fs=cur.files||[];
-  el.innerHTML=fs.length?fs.map((f,i)=>`<div class="file"><div class="ic">${f.kind==='audio'?'🎙':/pdf/i.test(f.mime)?'📄':'📎'}</div><div class="n"><b>${esc(f.name)}</b><span>${f.kind==='audio'?'Audio':'Document'} · ${fmtSizeR(f.size||0)}${f.dur?' · '+fmtDur(f.dur):''}</span><input placeholder="Légende…" value="${esc(f.cap||'')}" oninput="cur.files[${i}].cap=this.value;mark()"></div>
-    <button class="pl" onclick="window.open('${f.link}','_blank')" title="Ouvrir">▶</button><button class="x" onclick="cur.files.splice(${i},1);renderRFiles();mark()">×</button></div>`).join(''):'<p class="hint" style="margin:0 0 8px">Aucune pièce jointe. Utilisez « Reprendre » sur une note liée.</p>'}
+/* ================= corbeille ================= */
+function renderTrash(){const rows=notes.filter(n=>n.deletedAt).sort((a,b)=>b.deletedAt-a.deletedAt);const el=document.getElementById('trashList');
+  el.innerHTML=rows.length?rows.map(n=>noteCard(n,'restoreAsk')).join(''):'<div class="empty"><h2>Corbeille vide</h2></div>'}
+async function restoreAsk(id){const n=notes.find(x=>x.id===id);if(confirm('Restaurer cette note ?')){n.deletedAt=null;n.updatedAt=Date.now();await store.put('notes',n);sync.schedule();toast('Note restaurée');renderTrash()}
+  else if(confirm('Supprimer définitivement ?')){await purge(n);renderTrash()}}
+async function purge(n){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id);sync.markDeleted('n',n.id);sync.schedule()}
+async function emptyTrash(){const rows=notes.filter(n=>n.deletedAt);if(!rows.length||!confirm(`Supprimer définitivement ${rows.length} note(s) ?`))return;for(const n of rows)await purge(n);renderTrash()}
+async function autoPurge(){const lim=Date.now()-TRASH_DAYS*86400000;for(const n of notes.filter(n=>n.deletedAt&&n.deletedAt<lim))await purge(n)}
 
-/* ================= rendu HTML du corps ================= */
-function renderBody(text){let h='';
-  for(const b of parse(text)){
-    if(b.type==='ul')h+='<ul>'+b.items.map(i=>`<li>${esc(i)}</li>`).join('')+'</ul>';
-    else if(b.type==='ck')h+='<ul>'+b.items.map(i=>`<li class="ck">${esc(i)}</li>`).join('')+'</ul>';
-    else if(b.type==='p')h+=`<p>${b.label?'<b>'+esc(b.label)+'</b> ':''}${esc(b.text)}</p>`;
-    else h+=`<div class="${b.type}">${esc(b.text)}</div>`;
-  }return h}
-function setMode(m){
-  const rdr=m==='rdr';
-  if(rdr){const v=f_text.value.trim();render.innerHTML=v?renderBody(v):'<p class="tip">Rien à afficher pour l’instant.</p>';if(v)render.innerHTML+='<p class="tip">Toucher pour revenir à la saisie</p>'}
-  render.classList.toggle('hidden',!rdr);f_text.classList.toggle('hidden',rdr);
-  segTxt.classList.toggle('on',!rdr);segRdr.classList.toggle('on',rdr);
-  if(!rdr)setTimeout(()=>f_text.focus(),50);
-}
-/* ================= aperçu HTML ================= */
-function preview(){
-  readEditor();save(true);
-  const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
-  let h=`<div class="hdrow">${S.logo?`<img src="${S.logo}" alt="">`:'<span></span>'}<div class="hd"><b>${esc(S.name)}</b><br>${esc(S.addr)}<br>${esc(S.tel)}<br>${esc(S.mail)}<br>${esc(S.rcs)}</div></div>
-  <div class="t">${esc(S.title)}</div><p>Date d'intervention : ${esc(fmtDate(r.date))}${r.num?' &nbsp;·&nbsp; N° '+esc(r.num):''}</p>
-  <div class="pk">Détails de l'intervention</div><table class="meta">
-  ${cl?`<tr><td>Client</td><td>${esc(cl.name)}${cl.contact?'<br>'+esc(cl.contact):''}</td></tr>`:''}
-  ${r.addr?`<tr><td>Adresse d'intervention</td><td>${esc(r.addr).replace(/,\s*/g,'<br>')}</td></tr>`:''}
-  ${r.obj?`<tr><td>Objet</td><td>${esc(r.obj)}</td></tr>`:''}</table>`;
-  h+=renderBody(r.text);
-  if(r.photos.length)h+=`<div class="pk">Photos de l'intervention</div><div class="pg">`+r.photos.map(p=>`<figure><img src="${p.data}">${p.cap?`<figcaption>${esc(p.cap)}</figcaption>`:''}</figure>`).join('')+'</div>';
-  const vids=(r.videos||[]);
-  if(vids.length)h+=`<div class="pk">Vidéos de l'intervention</div><div class="vg">`+vids.map(v=>`<figure>${v.thumb?`<img src="${v.thumb}">`:'<div style="aspect-ratio:16/10;background:#222"></div>'}<figcaption>${v.cap?esc(v.cap)+'<br>':''}${v.link?`<a href="${v.link}" target="_blank">${v.link}</a>`:'<i>Lien disponible après envoi sur YouTube</i>'}${v.dur?' · '+fmtDur(v.dur):''}</figcaption></figure>`).join('')+'</div>';
-  document.getElementById('pv').innerHTML=h;go('preview');
-}
-
-/* =========================================================
-   Génération PDF (jsPDF) — mise en page identique à l'aperçu
-   ========================================================= */
-// jsPDF (Helvetica) ne connaît que Latin-1 : on remplace les glyphes hors table
-function txt(s){return String(s??'').replace(/[\u2018\u2019\u201A]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"').replace(/\u2026/g,'...').replace(/[\u2212]/g,'-').replace(/\u00A0/g,' ').replace(/[✓✔]/g,'').replace(/[^\u0000-\u00FF\u0152\u0153\u2013\u2014\u20AC\u2022]/g,'')}
+/* ================= PDF ================= */
+function txt(s){return String(s??'').replace(/[\u2018\u2019\u201A]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"').replace(/\u2026/g,'...').replace(/\u00A0/g,' ').replace(/[✓✔]/g,'').replace(/[^\u0000-\u00FF\u0152\u0153\u2013\u2014\u20AC\u2022]/g,'')}
 async function exportPdf(){
-  readEditor();await save(true);
-  const waiting=(cur.videos||[]).filter(v=>v.status!=='done');
-  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur YouTube : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
-  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
-  const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
-  const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;
-  const BLUE=[58,127,196],PINK=[224,40,125],GREY=[68,68,68],LIGHT=[221,221,221],GREEN=[46,125,79];
-  const footerText=S.footer||`${S.name} – ${S.title} – ${r.addr||''}`;
-  const footer=()=>{const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...GREY);
-    doc.text(txt(footerText),ML,H-10,{maxWidth:CW-25});doc.text(`Page ${i} / ${n}`,W-MR,H-10,{align:'right'})}};
+  readEditor();await save(true);const waiting=(cur.files||[]).filter(f=>f.status!=='done');
+  if(waiting.length&&!confirm(`${waiting.length} pièce(s) jointe(s) pas encore envoyée(s) : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});const S=settings,n=cur;
+  const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;const BLUE=[58,127,196],PINK=[224,40,125],GREY=[68,68,68],GREEN=[46,125,79];
   const need=h=>{if(y+h>H-BOT){doc.addPage();y=TOP}};
-  const line=(s,size,style,color,opts={})=>{doc.setFont('helvetica',style);doc.setFontSize(size);doc.setTextColor(...color);
-    const x=opts.x??ML,w=opts.w??CW;const ls=doc.splitTextToSize(txt(s),w);const lh=size*0.3527*(opts.lh||1.4);
-    for(const l of ls){need(lh);doc.text(l,opts.align==='right'?x+w:x,y+lh*0.75,{align:opts.align||'left'});y+=lh}};
-  // en-tête
-  const y0=y;
-  if(S.logo&&S.logoW&&S.logoH){const maxW=45,maxH=22;const s=Math.min(maxW/S.logoW,maxH/S.logoH);
-    try{doc.addImage(S.logo,S.logo.startsWith('data:image/png')?'PNG':'JPEG',ML,y0,S.logoW*s,S.logoH*s,undefined,'FAST')}catch(e){}}
+  const line=(s,size,style,color,o={})=>{doc.setFont('helvetica',style);doc.setFontSize(size);doc.setTextColor(...color);const x=o.x??ML,w=o.w??CW;const ls=doc.splitTextToSize(txt(s),w);const lh=size*0.3527*(o.lh||1.4);for(const l of ls){need(lh);doc.text(l,o.align==='right'?x+w:x,y+lh*0.75,{align:o.align||'left'});y+=lh}};
+  const y0=y;if(S.logo&&S.logoW&&S.logoH){const s=Math.min(45/S.logoW,22/S.logoH);try{doc.addImage(S.logo,S.logo.startsWith('data:image/png')?'PNG':'JPEG',ML,y0,S.logoW*s,S.logoH*s,undefined,'FAST')}catch(e){}}
   line(S.name,10,'bold',[34,34,34],{align:'right',x:ML+50,w:CW-50});[S.addr,S.tel,S.mail,S.rcs].filter(Boolean).forEach(t=>line(t,9,'normal',GREY,{align:'right',lh:1.3,x:ML+50,w:CW-50}));
   if(S.logo&&S.logoW&&S.logoH){const s=Math.min(45/S.logoW,22/S.logoH);y=Math.max(y,y0+S.logoH*s+2)}
-  y+=6;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(...BLUE);doc.text(txt(S.title),W/2,y+6,{align:'center'});y+=14;
-  line(`Date d'intervention : ${fmtDate(r.date)}${r.num?'   ·   N° '+r.num:''}`,9.5,'normal',GREY);
-  y+=3;line("Détails de l'intervention",12,'bold',PINK);y+=2;
-  // tableau méta
-  const meta=[];if(cl)meta.push(['Client :',cl.name+(cl.contact?'\n'+cl.contact:'')]);if(r.addr)meta.push(["Adresse d'intervention :",r.addr.replace(/,\s*/g,'\n')]);if(r.obj)meta.push(['Objet :',r.obj]);
-  for(const [k,v] of meta){doc.setFontSize(9.5);const vl=doc.splitTextToSize(txt(v),CW-52);const h=Math.max(1,vl.length)*4.8+3;need(h);
-    doc.setFont('helvetica','bold');doc.setTextColor(...GREY);doc.text(txt(k),ML,y+4);doc.setFont('helvetica','normal');doc.text(vl,ML+50,y+4);
-    y+=h;doc.setDrawColor(...LIGHT);doc.setLineWidth(.2);doc.line(ML,y,W-MR,y);y+=1}
-  y+=4;
-  // corps
-  for(const b of parse(r.text)){
+  y+=6;doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(...BLUE);const tl=doc.splitTextToSize(txt(n.title||'Note'),CW);doc.text(tl,W/2,y+6,{align:'center'});y+=6+tl.length*7;
+  const meta=[nbName(n.notebookId)?'Carnet : '+nbName(n.notebookId):'',(n.tags||[]).length?'Étiquettes : '+n.tags.map(t=>'#'+t).join(' '):'',n.reminder?'Rappel : '+fmtDT(new Date(n.reminder).getTime())+(n.remDone?' (traité)':''):'','Modifiée le '+fmtDT(n.updatedAt)].filter(Boolean).join('   ·   ');
+  line(meta,8.5,'normal',GREY);y+=4;
+  for(const b of parse(n.body)){
     if(b.type==='h1'){y+=4;line(b.text,12,'bold',BLUE);y+=1}
     else if(b.type==='day'){y+=4;need(9);doc.setFillColor(...BLUE);doc.rect(ML,y,CW,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(255,255,255);doc.text(txt(b.text),ML+3,y+5);y+=10}
-    else if(b.type==='h2'){y+=2;line(b.text,10.5,'bold',GREY);y+=1}
-    else if(b.type==='h3'){y+=1.5;line(b.text,10,'bold',GREY);}
-    else if(b.type==='p'){
-      if(b.label){doc.setFont('helvetica','bold');doc.setFontSize(9.5);const lw=doc.getTextWidth(txt(b.label)+' ');
-        const ls=doc.splitTextToSize(txt(b.text),CW-lw);const lh=9.5*0.3527*1.4;need(lh);doc.setTextColor(...GREY);doc.text(txt(b.label),ML,y+lh*.75);
-        doc.setFont('helvetica','normal');doc.text(ls[0],ML+lw,y+lh*.75);y+=lh;for(const l of ls.slice(1)){need(lh);doc.text(l,ML,y+lh*.75);y+=lh}y+=1.5}
-      else{line(b.text,9.5,'normal',GREY);y+=1.5}}
-    else if(b.type==='ul'||b.type==='ck'){
-      for(const it of b.items){const ls=doc.splitTextToSize(txt(it),CW-8);const lh=9.5*0.3527*1.4;need(lh*ls.length);
-        if(b.type==='ul'){doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);doc.text('–',ML+1.5,y+lh*.75)}
-        else{doc.setDrawColor(...GREEN);doc.setLineWidth(.5);const cx=ML+1.5,cy=y+lh*.5;doc.line(cx,cy,cx+1.2,cy+1.4);doc.line(cx+1.2,cy+1.4,cx+3.2,cy-1.6)}
-        doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);
-        for(const l of ls){doc.text(l,ML+7,y+lh*.75);y+=lh}}
-      y+=2}
-  }
-  // photos en fin
-  if(r.photos.length){
-    doc.addPage();y=TOP;line("Photos de l'intervention",12,'bold',PINK);y+=4;
-    const gap=8,cw=(CW-gap)/2,ch=95;
-    for(let i=0;i<r.photos.length;i+=2){
-      const pair=r.photos.slice(i,i+2);let capH=0;
-      pair.forEach(p=>{if(p.cap){doc.setFontSize(8.5);capH=Math.max(capH,doc.splitTextToSize(txt(p.cap),cw).length*3.8+2)}});
-      need(ch+capH+6);
-      pair.forEach((p,j)=>{const x=ML+j*(cw+gap);const s=Math.min(cw/p.w,ch/p.h);const w=p.w*s,h=p.h*s;
-        doc.addImage(p.data,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST');
-        if(p.cap){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt(p.cap),cw),x+cw/2,y+ch+4,{align:'center'})}});
-      y+=ch+capH+8;
-    }
-  }
-  // vidéos : vignette cliquable + lien
-  const vids=(r.videos||[]);
-  if(vids.length){
-    const gap=8,cw=(CW-gap)/2,ch=52;
-    if(y+70>H-BOT){doc.addPage();y=TOP}else y+=4;
-    line("Vidéos de l'intervention",12,'bold',PINK);y+=3;
-    for(let i=0;i<vids.length;i+=2){
-      const pair=vids.slice(i,i+2);need(ch+22);
-      pair.forEach((v,j)=>{const x=ML+j*(cw+gap);
-        doc.setFillColor(40,40,40);doc.rect(x,y,cw,ch,'F');
-        if(v.thumb){try{const s=(v.tw&&v.th)?Math.min(cw/v.tw,ch/v.th):0;const w=s?v.tw*s:cw,h=s?v.th*s:ch;doc.addImage(v.thumb,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST')}catch(e){}}
-        const cx=x+cw/2,cy=y+ch/2;doc.setFillColor(27,39,51);doc.setDrawColor(255,255,255);doc.setLineWidth(.6);doc.circle(cx,cy,6,'FD');doc.setFillColor(255,255,255);doc.triangle(cx-2,cy-3.4,cx-2,cy+3.4,cx+3.6,cy,'F');
-        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);let ty=y+ch+4;
-        if(v.cap){const cl=doc.splitTextToSize(txt(v.cap),cw);doc.text(cl,x,ty);ty+=cl.length*3.8}
-        if(v.link){doc.setTextColor(...BLUE);doc.setFontSize(7.5);const ll=doc.splitTextToSize(v.link,cw);doc.text(ll,x,ty);doc.link(x,y,cw,ch,{url:v.link});doc.link(x,ty-3,cw,ll.length*3.4,{url:v.link})}
-        else{doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text("Vidéo en cours d'envoi sur YouTube : lien non disponible",x,ty)}
-        if(v.dur){doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text('Durée '+fmtDur(v.dur)+' · '+fmtSize(v.size),x+cw,y+ch+4,{align:'right'})}});
-      y+=ch+22;
-    }
-  }
-  const rfs=(r.files||[]);
-  if(rfs.length){if(y+40>H-BOT){doc.addPage();y=TOP}else y+=4;line('Pièces jointes',12,'bold',PINK);y+=2;
-    for(const f of rfs){need(13);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt((f.kind==='audio'?'Audio : ':'Document : ')+f.name+(f.dur?' ('+fmtDur(f.dur)+')':'')+(f.cap?' – '+f.cap:'')),CW)[0],ML,y+3.5);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...BLUE);doc.text(txt(f.link),ML,y+8);doc.link(ML,y,CW,10,{url:f.link});y+=12}}
-  footer();
-  const name=`Rapport_${(r.num||r.date||'').replace(/[^\w-]/g,'_')}_${(r.addr||'intervention').split(',')[0].replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,40)}.pdf`;
-  const pdfBlob=doc.output('blob');sync.uploadPdf(name,pdfBlob);
-  await shareOrDownload(pdfBlob,name,'application/pdf');
-}
-async function shareOrDownload(blob,name,mime){
-  if(CAP){ // natif : écrire dans le cache puis partager via la feuille Android
-    const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(blob)});
-    const w=await FS.writeFile({path:name,directory:'CACHE',data:b64});
-    try{await SHARE.share({title:name,url:w.uri,dialogTitle:'Envoyer le fichier'})}catch(e){}
-    return;
-  }
-  const file=new File([blob],name,{type:mime});
+    else if(b.type==='h2'){y+=2;line(b.text,10.5,'bold',GREY);y+=1}else if(b.type==='h3'){y+=1.5;line(b.text,10,'bold',GREY)}
+    else if(b.type==='p'){if(b.label){doc.setFont('helvetica','bold');doc.setFontSize(9.5);const lw=doc.getTextWidth(txt(b.label)+' ');const ls=doc.splitTextToSize(txt(b.text),CW-lw);const lh=9.5*0.3527*1.4;need(lh);doc.setTextColor(...GREY);doc.text(txt(b.label),ML,y+lh*.75);doc.setFont('helvetica','normal');doc.text(ls[0],ML+lw,y+lh*.75);y+=lh;for(const l of ls.slice(1)){need(lh);doc.text(l,ML,y+lh*.75);y+=lh}y+=1.5}else{line(b.text,9.5,'normal',GREY);y+=1.5}}
+    else{for(const it of b.items){const ls=doc.splitTextToSize(txt(it),CW-8);const lh=9.5*0.3527*1.4;need(lh*ls.length);
+      if(b.type==='ul'){doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);doc.text('–',ML+1.5,y+lh*.75)}else{doc.setDrawColor(...GREEN);doc.setLineWidth(.5);const cx=ML+1.5,cy=y+lh*.5;doc.line(cx,cy,cx+1.2,cy+1.4);doc.line(cx+1.2,cy+1.4,cx+3.2,cy-1.6)}
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);for(const l of ls){doc.text(l,ML+7,y+lh*.75);y+=lh}}y+=2}}
+  if((n.photos||[]).length){y+=4;line('Photos',12,'bold',PINK);y+=3;const gap=8,cw=(CW-gap)/2,ch=80;
+    for(let i=0;i<n.photos.length;i+=2){const pair=n.photos.slice(i,i+2);let capH=0;pair.forEach(p=>{if(p.cap){doc.setFontSize(8.5);capH=Math.max(capH,doc.splitTextToSize(txt(p.cap),cw).length*3.8+2)}});need(ch+capH+6);
+      pair.forEach((p,j)=>{const x=ML+j*(cw+gap);const s=Math.min(cw/p.w,ch/p.h);doc.addImage(p.data,'JPEG',x+(cw-p.w*s)/2,y+(ch-p.h*s)/2,p.w*s,p.h*s,undefined,'FAST');if(p.cap){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt(p.cap),cw),x+cw/2,y+ch+4,{align:'center'})}});y+=ch+capH+8}}
+  const fs=(n.files||[]);
+  if(fs.length){y+=4;line('Pièces jointes',12,'bold',PINK);y+=2;
+    for(const f of fs){const lh=4.6;const lines=[(f.kind==='video'?'Vidéo':f.kind==='audio'?'Audio':'Document')+' : '+f.name+(f.dur?' ('+fmtDur(f.dur)+')':'')+(f.cap?' – '+f.cap:''),f.link||"En cours d'envoi : lien non disponible"];
+      need(lh*2+3);if(f.thumb){try{const s=Math.min(30/(f.tw||16),17/(f.th||9));doc.addImage(f.thumb,'JPEG',ML,y,(f.tw||16)*s,(f.th||9)*s,undefined,'FAST')}catch(e){}}
+      const x=f.thumb?ML+33:ML;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt(lines[0]),CW-(x-ML))[0],x,y+3.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...(f.link?BLUE:GREY));doc.text(txt(lines[1]),x,y+8);if(f.link)doc.link(ML,y,CW,Math.max(10,f.thumb?18:10),{url:f.link});y+=f.thumb?20:12}}
+  const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...GREY);doc.text(txt(S.footer||`${S.name} – Note – ${n.title||''}`),ML,H-10,{maxWidth:CW-25});doc.text(`Page ${i} / ${pages}`,W-MR,H-10,{align:'right'})}
+  const name=`Note_${(n.title||'note').replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,50)}.pdf`;const blob=doc.output('blob');
+  const file=new File([blob],name,{type:'application/pdf'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return}catch(e){if(e.name==='AbortError')return}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
-  toast('Fichier généré');
 }
 
-/* ================= clients ================= */
-let editingClient=null,returnToEditor=false;
-function renderClients(){
-  const el=document.getElementById('clientList');
-  if(!clients.length){el.innerHTML='<div class="empty"><h2>Aucun client</h2><p>Ajoutez vos clients réguliers pour préremplir les rapports.</p></div>';return}
-  el.innerHTML=clients.sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<div class="client"><div class="n"><b>${esc(c.name)}</b><span>${esc([c.contact,c.addr].filter(Boolean).join(' · '))}</span></div>
-    <button onclick="editClient('${c.id}')">Modifier</button><button class="del" onclick="deleteClient('${c.id}')">×</button></div>`).join('');
-}
-function editClient(id,fromEditor){
-  returnToEditor=!!fromEditor;editingClient=id?clients.find(c=>c.id===id):null;
-  dlgClientTitle.textContent=editingClient?'Modifier le client':'Nouveau client';
-  c_name.value=editingClient?.name||'';c_contact.value=editingClient?.contact||'';c_addr.value=editingClient?.addr||'';
-  dlgClient.showModal();setTimeout(()=>c_name.focus(),50);
-}
-async function saveClient(){
-  const name=c_name.value.trim();if(!name){c_name.focus();return}
-  const c=editingClient||{id:uid()};c.name=name;c.contact=c_contact.value.trim();c.addr=c_addr.value.trim();c.updatedAt=Date.now();
-  await store.putClient(c);sync.schedule();if(!editingClient)clients.push(c);dlgClient.close();
-  if(returnToEditor){fillClientSelect();f_client.value=c.id;if(c.addr&&!f_addr.value)f_addr.value=c.addr;mark()}else renderClients();
-  toast('Client enregistré');
-}
-async function deleteClient(id){if(!confirm('Supprimer ce client ? Les rapports existants sont conservés.'))return;await store.delClient(id);clients=clients.filter(c=>c.id!==id);sync.markDeleted('c',id);sync.schedule();renderClients()}
+/* =========================================================
+   Synchronisation Drive — dossier « Notes – Société » à la racine.
+   Réutilise la connexion Google faite dans l'app Rapports (mêmes clés locales).
+   ========================================================= */
+const sync={
+  tok:null,folderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('notes_lastSync'))||0,
+  clientId(){return (settings.gClientId||GOOGLE_CLIENT_ID||'').trim()},clientSecret(){return (settings.gClientSecret||GOOGLE_CLIENT_SECRET||'').trim()},
+  configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())&&this.clientSecret().length>10&&!/^__/.test(this.clientSecret())},
+  connected(){return localStorage.getItem('gconnected')==='1'},
+  pending(){return JSON.parse(localStorage.getItem(LS('notes_pending'))||'{"n":{},"nb":{}}')},
+  markDeleted(kind,id){const p=this.pending();p[kind][id]=Date.now();localStorage.setItem(LS('notes_pending'),JSON.stringify(p))},
+  setStatus(t,cls){const bar=document.getElementById('syncbar');bar.className='syncbar '+(cls||'');document.getElementById('syncTxt').textContent=t;document.getElementById('btnSync').classList.toggle('spin',cls==='busy');
+    const b=document.getElementById('syncBtn');if(!this.connected()){b.textContent='Se connecter';b.onclick=()=>location.href='../#connexion'}else{b.textContent=cls==='err'?'Réessayer':'';b.onclick=()=>this.full()}},
+  async tokenRequest(params){const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(Object.assign({client_id:this.clientId(),client_secret:this.clientSecret()},params))});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.error||('token '+r.status));return j},
+  async getToken(){
+    if(this.tok&&Date.now()<this.tok.e-60000)return this.tok.t;
+    const saved=JSON.parse(localStorage.getItem('gtok_drive')||'null');if(saved&&Date.now()<saved.e-60000){this.tok=saved;return saved.t}
+    const rt=localStorage.getItem('grefresh_drive');if(!rt||!this.configured()||!navigator.onLine)return null;
+    try{const j=await this.tokenRequest({refresh_token:rt,grant_type:'refresh_token'});this.tok={t:j.access_token,e:Date.now()+((+j.expires_in)||3600)*1000};localStorage.setItem('gtok_drive',JSON.stringify(this.tok));return this.tok.t}
+    catch(e){if(/invalid_grant/.test(e.message)){localStorage.removeItem('grefresh_drive');localStorage.removeItem('gtok_drive');localStorage.removeItem('gconnected')}return null}
+  },
+  async api(path,opt={}){const tok=await this.getToken();if(!tok)throw new Error('noauth');
+    const r=await fetch('https://www.googleapis.com/'+path,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+tok},opt.headers||{})}));
+    if(r.status===401){this.tok=null;localStorage.removeItem('gtok_drive');throw new Error('noauth')}if(!r.ok)throw new Error('Drive '+r.status+' '+(await r.text()).slice(0,120));return r},
+  async ensureFolder(){if(this.folderId)return;const q=`name='${COMPANY.drive.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const j=await (await this.api('drive/v3/files?fields=files(id)&q='+encodeURIComponent(q))).json();if(j.files&&j.files.length){this.folderId=j.files[0].id;return}
+    const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:COMPANY.drive,mimeType:'application/vnd.google-apps.folder'})})).json();this.folderId=c.id},
+  async ensureAttachFolder(){if(this.attachFolderId)return;const q=`name='Pièces jointes' and mimeType='application/vnd.google-apps.folder' and trashed=false and '${this.folderId}' in parents`;
+    const j=await (await this.api('drive/v3/files?fields=files(id)&q='+encodeURIComponent(q))).json();if(j.files&&j.files.length){this.attachFolderId=j.files[0].id;return}
+    const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Pièces jointes',mimeType:'application/vnd.google-apps.folder',parents:[this.folderId]})})).json();this.attachFolderId=c.id},
+  async resumable(initUrl,initHeaders,meta,blob,onProgress){
+    const init=await fetch(initUrl,{method:'POST',headers:Object.assign({'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':blob.type||'application/octet-stream','X-Upload-Content-Length':String(blob.size)},initHeaders),body:JSON.stringify(meta)});
+    if(init.status===401)throw new Error('noauth');if(init.status===403){const tx=await init.text();if(/quota/i.test(tx))throw new Error('quota');if(/insufficient|scope/i.test(tx))throw new Error('scope');throw new Error('403 '+tx.slice(0,100))}
+    if(!init.ok)throw new Error('init '+init.status+' '+(await init.text()).slice(0,100));const url=init.headers.get('Location');if(!url)throw new Error('URL de reprise absente');
+    const CH=8*1024*1024;let off=0,tries=0;while(off<blob.size){const end=Math.min(off+CH,blob.size);
+      const r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${off}-${end-1}/${blob.size}`},body:blob.slice(off,end)});
+      if(r.status===308){const rng=r.headers.get('Range');off=rng?parseInt(rng.split('-')[1])+1:end;tries=0}else if(r.ok){const j=await r.json();onProgress&&onProgress(1);return j.id}else if(++tries>4)throw new Error('upload '+r.status);else await new Promise(s=>setTimeout(s,1500*tries));onProgress&&onProgress(off/blob.size)}
+    throw new Error('upload incomplet')},
+  async uploadResumableDrive(name,blob,mime,parent,onProgress){const tok=await this.getToken();if(!tok)throw new Error('noauth');
+    return this.resumable('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{Authorization:'Bearer '+tok},{name,mimeType:mime,parents:[parent]},blob,onProgress)},
+  async getYtToken(){const saved=JSON.parse(localStorage.getItem('gtok_yt')||'null');if(saved&&Date.now()<saved.e-60000)return saved.t;const rt=localStorage.getItem('grefresh_yt');if(!rt||!navigator.onLine)return null;
+    try{const j=await this.tokenRequest({refresh_token:rt,grant_type:'refresh_token'});const o={t:j.access_token,e:Date.now()+((+j.expires_in)||3600)*1000};localStorage.setItem('gtok_yt',JSON.stringify(o));return o.t}catch(e){if(/invalid_grant/.test(e.message)){localStorage.removeItem('grefresh_yt');localStorage.removeItem('gtok_yt')}return null}},
+  async uploadYouTube(meta,blob,mime,onProgress){const tok=await this.getYtToken();if(!tok)throw new Error('scope');
+    return this.resumable('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',{Authorization:'Bearer '+tok},meta,blob,onProgress)},
+  async removeYouTube(id){const tok=await this.getYtToken();if(!tok)return;const r=await fetch('https://www.googleapis.com/youtube/v3/videos?id='+encodeURIComponent(id),{method:'DELETE',headers:{Authorization:'Bearer '+tok}});if(!r.ok&&r.status!==404)throw new Error('YouTube '+r.status)},
+  async list(){const q=`'${this.folderId}' in parents and trashed=false`;let files=[],pt='';do{const j=await (await this.api('drive/v3/files?pageSize=1000&fields=nextPageToken,files(id,name,appProperties)&q='+encodeURIComponent(q)+(pt?'&pageToken='+pt:''))).json();files=files.concat(j.files||[]);pt=j.nextPageToken||''}while(pt);return files},
+  async uploadJson(name,obj,id,props){const meta={name,mimeType:'application/json',appProperties:props||{}};if(!id)meta.parents=[this.folderId];const bd='notes'+Date.now();
+    const body=new Blob([`--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n`,JSON.stringify(obj),`\r\n--${bd}--`]);
+    const r=await this.api(`upload/drive/v3/files${id?'/'+id:''}?uploadType=multipart&fields=id`,{method:id?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body});return (await r.json()).id},
+  async download(id){return (await this.api(`drive/v3/files/${id}?alt=media`)).json()},
+  async remove(id){try{await this.api(`drive/v3/files/${id}`,{method:'DELETE'})}catch(e){if(!/404/.test(e.message))throw e}},
+  schedule(){clearTimeout(this.timer);this.timer=setTimeout(()=>this.full(),1500)},
+  boot(){if(!this.configured()){this.setStatus('Synchronisation non configurée (voir Réglages de l\'app Rapports)','err');return}
+    if(!this.connected()){this.setStatus('Non connecté à Google : connectez-vous depuis l\'app Rapports','err');return}
+    this.setStatus(this.lastSync?'Dernière synchronisation : '+fmtDT(this.lastSync):'Jamais synchronisé');this.full();
+    window.addEventListener('online',()=>this.full());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-this.lastSync>5*60000)this.full()})},
+  async full(){
+    if(this.busy||!this.configured()||!this.connected())return;if(!navigator.onLine){this.setStatus('Hors ligne – envoi au retour du réseau','err');return}
+    this.busy=true;this.setStatus('Synchronisation','busy');
+    try{await this.ensureFolder();const p=this.pending();const files=await this.list();const byName=Object.fromEntries(files.map(f=>[f.name,f]));
+      for(const id of Object.keys(p.n)){const f=byName['n_'+id+'.json'];if(f)await this.remove(f.id);delete p.n[id]}
+      for(const n of notes.slice()){try{const f=byName['n_'+n.id+'.json'];
+        if(!f){if(n.driveId){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id)}else{n.driveId=await this.uploadJson('n_'+n.id+'.json',n,null,{updatedAt:String(n.updatedAt)});await store.put('notes',n)}continue}
+        const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
+        if(n.updatedAt>ru){await this.uploadJson('n_'+n.id+'.json',n,f.id,{updatedAt:String(n.updatedAt)});n.driveId=f.id;await store.put('notes',n)}
+        else if(n.updatedAt<ru){const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes[notes.findIndex(x=>x.id===n.id)]=nn;if(cur&&cur.id===nn.id&&!dirty)cur=JSON.parse(JSON.stringify(nn))}
+        else if(!n.driveId){n.driveId=f.id;await store.put('notes',n)}}catch(e){if(!/404/.test(e.message))throw e}}
+      for(const f of files){if(!f.name.startsWith('n_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);if(!notes.some(n=>n.id===id)&&!p.n[id]){try{const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes.push(nn)}catch(e){if(!/404/.test(e.message))throw e}}}
+      // carnets : fusion
+      const nf=byName['notebooks.json'];let remote=nf?await this.download(nf.id):{notebooks:[],deleted:{}};remote.deleted=remote.deleted||{};Object.assign(remote.deleted,p.nb);
+      const merged={};for(const c of [...(remote.notebooks||[]),...notebooks]){const o=merged[c.id];if(!o||(c.updatedAt||0)>(o.updatedAt||0))merged[c.id]=c}
+      const fin=Object.values(merged).filter(c=>!(remote.deleted[c.id]&&remote.deleted[c.id]>(c.updatedAt||0)));
+      const sig=l=>JSON.stringify(l.map(c=>c.id+':'+(c.updatedAt||0)).sort());
+      if(sig(notebooks)!==sig(fin)){for(const c of notebooks)if(!fin.some(x=>x.id===c.id))await store.del('notebooks',c.id);for(const c of fin)await store.put('notebooks',c);notebooks=fin}
+      if(sig(remote.notebooks||[])!==sig(fin)||Object.keys(p.nb).length)await this.uploadJson('notebooks.json',{notebooks:fin,deleted:remote.deleted},nf&&nf.id);p.nb={};
+      localStorage.setItem(LS('notes_pending'),JSON.stringify(p));this.lastSync=Date.now();localStorage.setItem(LS('notes_lastSync'),this.lastSync);
+      this.setStatus('Synchronisé à '+new Date(this.lastSync).toLocaleTimeString('fr-FR',{timeStyle:'short'}),'ok');setTimeout(()=>uploader.run(),200);
+    }catch(e){console.warn(e);this.setStatus(e.message==='noauth'?'Reconnexion à Google nécessaire (depuis l\'app Rapports)':'Erreur de synchronisation : '+e.message.slice(0,80),'err')}
+    finally{this.busy=false;if(!document.getElementById('v-list').classList.contains('hidden'))renderList()}
+  }
+};
 
-/* ================= réglages ================= */
-function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=settings.gClientId||'';s_gsec.value=settings.gClientSecret||'';renderLogo();sync.renderSettings()}
-function renderLogo(){const im=document.getElementById('s_logoImg');im.classList.toggle('hidden',!settings.logo);document.getElementById('s_logoDel').classList.toggle('hidden',!settings.logo);if(settings.logo)im.src=settings.logo}
-async function setLogo(file){
-  if(!file){settings.logo='';settings.logoW=settings.logoH=0}
-  else{const url=URL.createObjectURL(file);const img=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=url});
-    const max=600;const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*s),h=Math.round(img.naturalHeight*s);
-    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);
-    const png=c.toDataURL('image/png');const jpg=c.toDataURL('image/jpeg',0.85);
-    settings.logo=(file.type==='image/png'||file.type==='image/svg+xml'||file.type==='image/webp')&&png.length<400000?png:jpg;settings.logoW=w;settings.logoH=h}
-  settings.updatedAt=Date.now();await store.saveSettings(settings);renderLogo();sync.schedule();toast(file?'Logo enregistré':'Logo retiré')}
-function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.trim(),tel:s_tel.value.trim(),mail:s_mail.value.trim(),rcs:s_rcs.value.trim(),title:s_title.value.trim()||"RAPPORT D'INTERVENTION",footer:s_footer.value.trim(),px:+s_px.value,q:+s_q.value,gClientId:s_gcid.value.trim(),gClientSecret:s_gsec.value.trim(),logo:settings.logo,logoW:settings.logoW,logoH:settings.logoH,updatedAt:Date.now()};
-  store.saveSettings(settings);sync.schedule();toast('Réglages enregistrés');go('list')}
+/* ================= rappels (app ouverte) ================= */
+function checkReminders(){if(!('Notification' in window)||Notification.permission!=='granted')return;const now=Date.now();
+  for(const n of live()){if(n.reminder&&!n.remDone&&!n._notified){const t=new Date(n.reminder).getTime();if(t<=now&&now-t<3600000){n._notified=true;try{new Notification('Rappel : '+(n.title||firstLine(n.body)),{body:(n.body||'').slice(0,100),icon:'./icon-192.png'})}catch(e){}}}}}
+setInterval(checkReminders,60000);
+document.getElementById('f_rem').addEventListener('change',()=>{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()});
 
-/* ================= sauvegarde / restauration ================= */
-function exportData(){
-  const blob=new Blob([JSON.stringify({v:1,settings,clients,reports})],{type:'application/json'});
-  shareOrDownload(blob,`sauvegarde-rapports-${new Date().toISOString().slice(0,10)}.json`,'application/json');
-}
-async function importData(file){
-  if(!file)return;try{const d=JSON.parse(await file.text());
-    if(!confirm(`Restaurer ${d.reports?.length||0} rapports et ${d.clients?.length||0} clients ? Les éléments existants ayant le même identifiant seront remplacés.`))return;
-    for(const c of d.clients||[])await store.putClient(c);for(const r of d.reports||[])await store.putReport(r);
-    if(d.settings){settings=Object.assign({},DEF_SETTINGS,d.settings);await store.saveSettings(settings)}
-    clients=await store.allClients();reports=await store.allReports();toast('Données restaurées');sync.schedule();go('list')}
-  catch(e){toast('Fichier de sauvegarde invalide')}
-}
+/* ================= « Partager vers » Android ================= */
+function handleShareTarget(){const q=new URLSearchParams(location.search);
+  if(q.get('shared')==='1'){history.replaceState(null,'',location.pathname);(async()=>{
+    const d=await new Promise((res,rej)=>{const r=indexedDB.open('share-inbox-notes-'+COMPANY_KEY,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('items',{autoIncrement:true});r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error)});
+    const items=await new Promise(res=>{const r=d.transaction('items').objectStore('items').getAll();r.onsuccess=()=>res(r.result||[])});
+    d.transaction('items','readwrite').objectStore('items').clear();
+    const it=items[items.length-1];if(!it){go('list');return}
+    newNote({title:it.title||'',body:[it.text,it.url].filter(Boolean).join('\n'),tags:['partagé']});
+    const files=(it.files||[]);const imgs=files.filter(f=>/^image\//.test(f.type)),others=files.filter(f=>!/^image\//.test(f.type));
+    if(imgs.length)await addPhotos(imgs);if(others.length)await addFiles(others);
+  })();return true}
+  if(!q.has('text')&&!q.has('url')&&!q.has('title'))return false;
+  history.replaceState(null,'',location.pathname);const body=[q.get('text'),q.get('url')].filter(Boolean).join('\n');newNote({title:q.get('title')||'',body,tags:['partagé']});return true}
+
+/* ================= mises à jour ================= */
+let swReg=null,reloading=false;
+async function setupUpdates(){if(!('serviceWorker' in navigator)||!location.protocol.startsWith('http'))return;
+  try{swReg=await navigator.serviceWorker.register('./sw.js')}catch(e){return}
+  if(swReg.waiting)updbar.classList.remove('hidden');
+  swReg.addEventListener('updatefound',()=>{const nw=swReg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)updbar.classList.remove('hidden')})});
+  const hadController=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadController||reloading)return;reloading=true;location.reload()});
+  const check=()=>swReg.update().catch(()=>{});setInterval(check,30*60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()})}
+async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.waiting)swReg.waiting.postMessage('skipWaiting');else location.reload()}
 
 /* ================= démarrage ================= */
 (async()=>{
-  try{await store.init();reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings());if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID;if(!settings.gClientSecret)settings.gClientSecret=GOOGLE_CLIENT_SECRET}
-  catch(e){alert("Stockage local indisponible. Les rapports ne pourront pas être conservés.\n\n"+e)}
-  if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
-  if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
-  renderList();if(!sync.handleRedirect())sync.boot();else sync.boot();const hm=location.hash.match(/^#rapport=(.+)$/);if(hm){history.replaceState(null,'',location.pathname);const r=reports.find(x=>x.id===hm[1]);if(r)openReport(r.id);else toast('Rapport introuvable sur ce téléphone (synchronisez)')}
-  if(location.hash==='#connexion'||location.hash==='#youtube'){history.replaceState(null,'',location.pathname);go('settings');if(location.hash==='#youtube')setTimeout(()=>document.getElementById('btnYt').scrollIntoView(),300)}setTimeout(()=>videoUploader.run(),3000);
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))setupUpdates();
+  try{await store.init();notes=await store.all('notes');notebooks=await store.all('notebooks')}catch(e){alert('Stockage local indisponible : '+e)}
+  await autoPurge();renderSortOpts();renderList();const hm=location.hash.match(/^#note=(.+)$/);if(hm){history.replaceState(null,'',location.pathname);const n=notes.find(x=>x.id===hm[1]);if(n)openNote(n.id);else{go('list');toast('Note introuvable sur ce téléphone (synchronisez)')}}else if(!handleShareTarget())go('list');sync.boot();setupUpdates();checkReminders();
 })();
-window.addEventListener('beforeunload',()=>{if(cur&&dirty)save(true)});
-/* ---- mises à jour : proposer dès qu'une nouvelle version est prête ---- */
-let swReg=null,reloading=false;
-function offerUpdate(){document.getElementById('updbar').classList.remove('hidden')}
-async function setupUpdates(){
-  try{swReg=await navigator.serviceWorker.register('./sw.js')}catch(e){return}
-  if(swReg.waiting)offerUpdate();
-  swReg.addEventListener('updatefound',()=>{const nw=swReg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)offerUpdate()})});
-  const hadController=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadController||reloading)return;reloading=true;location.reload()});
-  const check=()=>swReg.update().catch(()=>{});
-  setInterval(check,30*60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});window.addEventListener('online',check);
-}
-async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.waiting)swReg.waiting.postMessage('skipWaiting');else location.reload()}
-</script>
-<script>
-/* =========================================================
-   Synchronisation Google Drive (compte partagé de l'équipe)
-   Dossier « Rapports d'intervention » : r_<id>.json, clients.json,
-   settings.json ; sous-dossier PDF pour les PDF générés.
-   Règle de conflit : la modification la plus récente gagne.
-   ========================================================= */
-const sync={
-  tok:{drive:null,yt:null},hasYouTube(){return !!(localStorage.getItem('grefresh_yt')||(this.tok.yt&&Date.now()<this.tok.yt.e))},get token(){return this.tok.drive&&this.tok.drive.t},folderId:null,pdfFolderId:null,busy:false,timer:null,lastSync:+localStorage.getItem(LS('lastSync'))||0,
-  clientId(){return (settings.gClientId||GOOGLE_CLIENT_ID||'').trim()},
-  configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())},
-  connected(){return localStorage.getItem('gconnected')==='1'},
-  pending(){return JSON.parse(localStorage.getItem(LS('gpending'))||'{"r":{},"c":{}}')},
-  markDeleted(kind,id){const p=this.pending();p[kind][id]=Date.now();localStorage.setItem(LS('gpending'),JSON.stringify(p))},
-
-  /* --- état affiché --- */
-  setStatus(txt,cls){const bar=document.getElementById('syncbar');bar.className='syncbar '+(cls||'');document.getElementById('syncTxt').textContent=txt;
-    document.getElementById('btnSync').classList.toggle('spin',cls==='busy');bar.querySelector('button').textContent=cls==='err'&&this.configured()?'Réessayer':'Réglages';
-    bar.querySelector('button').onclick=cls==='err'&&this.configured()?()=>{if(this.connected())this.full(false);else this.redirectAuth('drive')}:()=>go('settings')},
-  renderSettings(){const st=document.getElementById('gStatus');if(!st)return;
-    st.textContent=!this.configured()?"Identifiant ou secret client Google manquant : ouvrez « Réglages avancés » et collez les valeurs fournies par l'administrateur.":this.connected()?(this.hasYouTube()?"Connecté (Drive + YouTube)":"Connecté (Drive ; YouTube non encore autorisé)")+(localStorage.getItem('ghint')?" avec "+localStorage.getItem('ghint'):"")+". Dernière synchronisation : "+(this.lastSync?new Date(this.lastSync).toLocaleString('fr-FR'):'jamais'):"Non connecté. Appuyez sur « Se connecter à Google » avec le compte partagé de l'équipe.";
-    document.getElementById('btnGConnect').disabled=!this.configured();document.getElementById('btnGDisc').classList.toggle('hidden',!this.connected());document.getElementById('btnYt').classList.toggle('hidden',!this.connected()||this.hasYouTube())},
-
-  /* --- authentification (Google Identity Services, jeton 1 h) --- */
-  SCOPES:{drive:'https://www.googleapis.com/auth/drive.file',yt:'https://www.googleapis.com/auth/youtube.upload'},
-  redirectUri(){return location.origin+location.pathname.replace(/[^/]*$/,'')},
-  clientSecret(){return (settings.gClientSecret||GOOGLE_CLIENT_SECRET||'').trim()},
-  configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())&&this.clientSecret().length>10&&!/^__/.test(this.clientSecret())},
-  /* --- Authorization Code + PKCE (flux recommandé par Google ; requis pour YouTube) --- */
-  rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
-  async sha256b64(s){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
-  async redirectAuth(kind='drive'){
-    if(cur&&dirty)await save(true);
-    const verifier=this.rnd(64),state=this.rnd(16);
-    sessionStorage.setItem('gauth_pending',JSON.stringify({view:cur?'edit':'list',id:cur&&cur.id,verifier,state,kind}));
-    const p=new URLSearchParams({client_id:this.clientId(),redirect_uri:this.redirectUri(),response_type:'code',scope:this.SCOPES[kind],access_type:'offline',prompt:'consent select_account',state,code_challenge:await this.sha256b64(verifier),code_challenge_method:'S256',login_hint:localStorage.getItem('ghint')||''});
-    location.href='https://accounts.google.com/o/oauth2/v2/auth?'+p.toString();
-  },
-  storeTokens(kind,j){const o={t:j.access_token,e:Date.now()+((+j.expires_in)||3600)*1000};this.tok[kind]=o;
-    if(j.refresh_token)localStorage.setItem('grefresh_'+kind,j.refresh_token);
-    localStorage.setItem('gtok_'+kind,JSON.stringify(o));if(kind==='drive')localStorage.setItem('gconnected','1')},
-  async tokenRequest(params){
-    const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(Object.assign({client_id:this.clientId(),client_secret:this.clientSecret()},params))});
-    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.error||('token '+r.status));return j;
-  },
-  handleRedirect(){
-    const q=new URLSearchParams(location.search);if(!q.get('code')&&!q.get('error'))return false;
-    const pend=JSON.parse(sessionStorage.getItem('gauth_pending')||'null');sessionStorage.removeItem('gauth_pending');
-    history.replaceState(null,'',location.pathname);
-    if(q.get('error')){toast('Autorisation refusée : '+q.get('error'));return true}
-    if(!pend||pend.state!==q.get('state')){toast('Retour Google invalide, réessayez');return true}
-    (async()=>{try{
-      const j=await this.tokenRequest({code:q.get('code'),code_verifier:pend.verifier,grant_type:'authorization_code',redirect_uri:this.redirectUri()});
-      this.storeTokens(pend.kind||'drive',j);if(pend.kind==='yt'){toast('YouTube autorisé')}else{await this.saveHint();toast('Connecté à Google')}
-      if(pend.view==='edit'&&pend.id){const r=reports.find(x=>x.id===pend.id);if(r){openReport(r.id);(cur.videos||[]).forEach(v=>{if(v.status==='auth')v.status='pending'});renderVideos()}}
-      this.renderSettings();this.full(false);videoUploader.stop='';setTimeout(()=>videoUploader.run(),500);
-    }catch(e){console.warn(e);toast('Connexion Google échouée : '+e.message.slice(0,80))}})();
-    return true;
-  },
-  async getToken(interactive,kind='drive'){
-    const cur_=this.tok[kind];if(cur_&&Date.now()<cur_.e-60000)return cur_.t;
-    const saved=JSON.parse(localStorage.getItem('gtok_'+kind)||'null');if(saved&&Date.now()<saved.e-60000){this.tok[kind]=saved;return saved.t}
-    if(!this.configured())return null;
-    const rt=localStorage.getItem('grefresh_'+kind);
-    if(rt&&navigator.onLine){try{const j=await this.tokenRequest({refresh_token:rt,grant_type:'refresh_token'});this.storeTokens(kind,j);return this.tok[kind].t}
-      catch(e){console.warn('refresh',e);if(/invalid_grant/.test(e.message)){localStorage.removeItem('grefresh_'+kind);localStorage.removeItem('gtok_'+kind);if(kind==='drive')localStorage.removeItem('gconnected')}}}
-    if(interactive){await this.redirectAuth(kind);return null}
-    return null;
-  },
-  async saveHint(){try{const tok=await this.getToken(false,'drive');if(!tok)return;const r=await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',{headers:{Authorization:'Bearer '+tok}});const j=await r.json();if(j.user&&j.user.emailAddress){localStorage.setItem('ghint',j.user.emailAddress);this.renderSettings()}}catch(e){}},
-  async connect(){const f=document.getElementById('s_gcid');if(f&&f.value.trim()){settings.gClientId=f.value.trim();await store.saveSettings(settings)}await this.redirectAuth('drive')},
-  disconnect(){for(const k of ['drive','yt']){const rt=localStorage.getItem('grefresh_'+k);if(rt)fetch('https://oauth2.googleapis.com/revoke?token='+encodeURIComponent(rt),{method:'POST'}).catch(()=>{})}
-    this.tok={drive:null,yt:null};this.folderId=null;['gtok_drive','gtok_yt','grefresh_drive','grefresh_yt','gconnected','ghint','gtok','grefresh'].forEach(k=>localStorage.removeItem(k));this.renderSettings();this.setStatus('Non connecté à Google');toast('Déconnecté')},
-
-  /* --- appels Drive --- */
-  async api(path,opt={},interactive=false){const tok=await this.getToken(interactive,'drive');if(!tok)throw new Error('noauth');
-    const r=await fetch('https://www.googleapis.com/'+path,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+tok},opt.headers||{})}));
-    if(r.status===401){this.tok.drive=null;localStorage.removeItem('gtok_drive');throw new Error('noauth')}
-    if(!r.ok)throw new Error('Drive '+r.status+' '+(await r.text()).slice(0,200));return r},
-  async findOrCreateFolder(name,parent){
-    const q=`name='${name.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`+(parent?` and '${parent}' in parents`:'');
-    const j=await (await this.api('drive/v3/files?fields=files(id)&q='+encodeURIComponent(q))).json();if(j.files&&j.files.length)return j.files[0].id;
-    const c=await (await this.api('drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:[]})})).json();return c.id},
-  async ensureFolders(){if(this.folderId&&this.pdfFolderId)return;this.folderId=await this.findOrCreateFolder(COMPANY.drive,null);this.pdfFolderId=await this.findOrCreateFolder('PDF',this.folderId)},
-  async uploadYouTube(meta,blob,mime,onProgress){
-    const tok=await this.getToken(false,'yt');if(!tok)throw new Error('scope');
-    const init=await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':mime,'X-Upload-Content-Length':String(blob.size)},body:JSON.stringify(meta)});
-    if(init.status===401)throw new Error('noauth');
-    if(init.status===403){const tx=await init.text();if(/quota/i.test(tx))throw new Error('quota');if(/insufficient|scope/i.test(tx))throw new Error('scope');throw new Error('YouTube 403 '+tx.slice(0,120))}
-    if(!init.ok)throw new Error('YouTube init '+init.status+' '+(await init.text()).slice(0,120));
-    const url=init.headers.get('Location');if(!url)throw new Error('YouTube : URL de reprise absente');
-    const CH=8*1024*1024;let off=0,tries=0;
-    while(off<blob.size){
-      const end=Math.min(off+CH,blob.size);
-      const r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${off}-${end-1}/${blob.size}`},body:blob.slice(off,end)});
-      if(r.status===308){const rng=r.headers.get('Range');off=rng?parseInt(rng.split('-')[1])+1:end;tries=0}
-      else if(r.ok){const j=await r.json();onProgress&&onProgress(1);return j.id}
-      else if(++tries>4)throw new Error('YouTube upload '+r.status);
-      else await new Promise(s=>setTimeout(s,1500*tries));
-      onProgress&&onProgress(off/blob.size);
-    }
-    throw new Error('YouTube upload incomplet');
-  },
-  async removeYouTube(id){const tok=await this.getToken(false,'yt');if(!tok)return;const r=await fetch('https://www.googleapis.com/youtube/v3/videos?id='+encodeURIComponent(id),{method:'DELETE',headers:{Authorization:'Bearer '+tok}});if(!r.ok&&r.status!==404)throw new Error('YouTube '+r.status)},
-  async list(parent){const q=`'${parent}' in parents and trashed=false`;let files=[],pt='';
-    do{const j=await (await this.api('drive/v3/files?pageSize=1000&fields=nextPageToken,files(id,name,appProperties)&q='+encodeURIComponent(q)+(pt?'&pageToken='+pt:''))).json();files=files.concat(j.files||[]);pt=j.nextPageToken||''}while(pt);return files},
-  async upload(name,blob,mime,parent,id,props){
-    const meta={name,mimeType:mime,appProperties:props||{}};if(!id)meta.parents=[parent];
-    const bd='rapports'+Date.now();const body=new Blob([`--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: ${mime}\r\n\r\n`,blob,`\r\n--${bd}--`]);
-    const r=await this.api(`upload/drive/v3/files${id?'/'+id:''}?uploadType=multipart&fields=id`,{method:id?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body});return (await r.json()).id},
-  uploadJson(name,obj,parent,id,props){return this.upload(name,new Blob([JSON.stringify(obj)],{type:'application/json'}),'application/json',parent,id,props)},
-  async download(id){return (await this.api(`drive/v3/files/${id}?alt=media`)).json()},
-  async remove(id){try{await this.api(`drive/v3/files/${id}`,{method:'DELETE'})}catch(e){if(!/404/.test(e.message))throw e}},
-  async uploadPdf(name,blob){if(!this.configured()||!this.connected())return;try{await this.ensureFolders();await this.upload(name,blob,'application/pdf',this.pdfFolderId)}catch(e){console.warn('PDF non déposé sur Drive',e)}},
-
-  /* --- synchronisation complète --- */
-  schedule(){clearTimeout(this.timer);this.timer=setTimeout(()=>this.full(false),1500)},
-  boot(){if(!this.configured()){this.setStatus('Synchronisation non configurée');return}
-    if(!this.connected()){this.setStatus('Non connecté à Google','err');return}
-    this.setStatus(this.lastSync?'Dernière synchronisation : '+new Date(this.lastSync).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'Jamais synchronisé');
-    this.full(false);window.addEventListener('online',()=>this.full(false));
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-this.lastSync>5*60000)this.full(false)})},
-  async full(interactive){
-    if(this.busy||!this.configured())return;if(!navigator.onLine){this.setStatus('Hors ligne – les modifications seront envoyées au retour du réseau','err');return}
-    this.busy=true;this.setStatus('Synchronisation','busy');let changed=false;
-    try{
-      await this.ensureFolders();
-      const p=this.pending();
-      const files=await this.list(this.folderId);const byName=Object.fromEntries(files.map(f=>[f.name,f]));
-      // suppressions en attente
-      for(const id of Object.keys(p.r)){const f=byName['r_'+id+'.json'];if(f)await this.remove(f.id);delete p.r[id]}
-      // rapports locaux
-      for(const r of reports.slice()){try{
-        const f=byName['r_'+r.id+'.json'];
-        if(!f){ if(r.driveId){await store.delReport(r.id);reports=reports.filter(x=>x.id!==r.id);changed=true} // supprimé par un collègue
-                else{r.driveId=await this.uploadJson('r_'+r.id+'.json',r,this.folderId,null,{updatedAt:String(r.updatedAt)});await store.putReport(r)} continue }
-        const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(r.updatedAt>ru){await this.uploadJson('r_'+r.id+'.json',r,null,f.id,{updatedAt:String(r.updatedAt)});r.driveId=f.id;await store.putReport(r)}
-        else if(r.updatedAt<ru){const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports[reports.findIndex(x=>x.id===r.id)]=nr;if(cur&&cur.id===nr.id&&!dirty){cur=JSON.parse(JSON.stringify(nr))}changed=true}
-        else if(!r.driveId){r.driveId=f.id;await store.putReport(r)}
-      }catch(e){if(!/404/.test(e.message))throw e}}
-      // rapports distants inconnus
-      for(const f of files){if(!f.name.startsWith('r_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);
-        if(!reports.some(r=>r.id===id)){if(p.r[id])continue;try{const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports.push(nr);changed=true}catch(e){if(!/404/.test(e.message))throw e}}}
-      // clients : fusion par id, tombstones pour les suppressions
-      const cf=byName['clients.json'];let remote=cf?await this.download(cf.id):{clients:[],deleted:{}};remote.deleted=remote.deleted||{};
-      Object.assign(remote.deleted,p.c);
-      const merged={};for(const c of [...(remote.clients||[]),...clients]){const o=merged[c.id];if(!o||(c.updatedAt||0)>(o.updatedAt||0))merged[c.id]=c}
-      const finalClients=Object.values(merged).filter(c=>!(remote.deleted[c.id]&&remote.deleted[c.id]>(c.updatedAt||0)));
-      const before=JSON.stringify(clients.map(c=>c.id+':'+(c.updatedAt||0)).sort());const after=JSON.stringify(finalClients.map(c=>c.id+':'+(c.updatedAt||0)).sort());
-      const remoteStr=JSON.stringify((remote.clients||[]).map(c=>c.id+':'+(c.updatedAt||0)).sort());
-      if(before!==after){for(const c of clients)if(!finalClients.some(x=>x.id===c.id))await store.delClient(c.id);for(const c of finalClients)await store.putClient(c);clients=finalClients;changed=true}
-      if(remoteStr!==after||Object.keys(p.c).length)await this.uploadJson('clients.json',{clients:finalClients,deleted:remote.deleted},this.folderId,cf&&cf.id);
-      p.c={};
-      // réglages partagés
-      const sf=byName['settings.json'];const rs=sf?await this.download(sf.id):null;
-      if(rs&&(rs.updatedAt||0)>(settings.updatedAt||0)){const keepCid=settings.gClientId;settings=Object.assign({},DEF_SETTINGS,rs);if(!settings.gClientId)settings.gClientId=keepCid;await store.saveSettings(settings)}
-      else if(!rs||(settings.updatedAt||0)>(rs.updatedAt||0))await this.uploadJson('settings.json',settings,this.folderId,sf&&sf.id);
-      localStorage.setItem(LS('gpending'),JSON.stringify(p));
-      this.lastSync=Date.now();localStorage.setItem(LS('lastSync'),this.lastSync);
-      this.setStatus('Synchronisé à '+new Date(this.lastSync).toLocaleTimeString('fr-FR',{timeStyle:'short'}),'ok');
-      setTimeout(()=>videoUploader.run(),200);
-    }catch(e){console.warn(e);
-      if(e.message==='noauth')this.setStatus('Reconnexion à Google nécessaire','err');else this.setStatus('Erreur de synchronisation : '+e.message.slice(0,80),'err');
-    }finally{this.busy=false;if(changed||true)renderList();this.renderSettings()}
-  }
-};
 </script>
 </body>
 </html>
