@@ -80,3 +80,22 @@ toujours envoyée, quel que soit son âge.
 ## Raccourci global
 La page racine (choix Ventura / Kidebouchetou) est installable : icône « Rapports d'intervention ».
 La société choisie s'ouvre dans la même fenêtre. Les raccourcis par société restent utilisables.
+
+## Facturation (lot 1) – /ventura/factures/ et /kidebouchetou/factures/
+Page à part (bouton « Factures » dans Rapports, icône propre). Devis et factures avec lignes (qté, unité,
+PU HT, TVA 20/10/5,5/0 %), remise globale, acompte, conditions ; catalogue automatique des prestations déjà
+saisies ; clients partagés avec Rapports et Notes (fiche enrichie : type particulier/pro, e-mail, adresse de
+facturation, SIRET, n° TVA), synchronisés via clients.json du dossier Rapports.
+Cycle : devis établi → accepté/refusé → converti en facture (brouillon) → facture émise (numérotée, verrouillée)
+→ paiements (partiel/payée/en retard) ; avoir d'annulation ; duplication.
+Numérotation D-AAAA-0001 / F-AAAA-0001 par société, attribuée à l'émission via counters.json sur le Drive
+(écriture puis relecture pour détecter une collision entre deux appareils). Sur téléphone hors ligne, le numéro est attribué localement (plus grand numéro connu + 1) et la synchro signale tout doublon ; sur PC la connexion est exigée.
+Menu ☰ dans les trois apps (Rapports, Notes, Facturation). Client : champ de recherche avec liste et création rapide. Désignation : zone multi-ligne avec suggestions du catalogue (remplit prix, TVA, unité) ; les libellés de plus de 90 caractères ou sur plusieurs lignes ne vont pas au catalogue.
+PDF : en-tête/logo des Rapports, bloc client, tableau, totaux par taux de TVA, acompte, réglé, net à payer,
+mentions légales (SIREN, RCS, TVA intracom, pénalités, indemnité 40 € pour les pros, IBAN), zone « Bon pour
+accord » sur les devis ; le PDF est aussi déposé dans « Facturation – Société / PDF ».
+Réglages facturation (⚙, partagés) : SIRET, TVA intracom, forme juridique, APE, IBAN/BIC, délai de paiement,
+validité des devis, TVA par défaut, conditions, assurance. Export CSV (factures ; paiements) sur une période.
+Depuis un rapport : boutons « Créer un devis » / « Créer une facture » (client, objet et lien repris).
+Réserve : facturation électronique obligatoire (émission TPE/PME dès sept. 2027 pour les clients assujettis) –
+à traiter le moment venu (export vers une plateforme agréée).
