@@ -69,3 +69,14 @@ PDF/audio/autres → pièces jointes envoyées sur le Drive après l'import ; é
 et rappels conservés. Une note déjà importée (même titre et date de création) est ignorée au réimport. Case « Restaurer uniquement les dates de modification » : relit les .enex et remet la date Evernote sur les notes déjà importées, sans rien créer.
 Date de modification : changée uniquement par une saisie du plombier ; les envois de fichiers, liens avec un rapport, corbeille et synchro utilisent une révision technique séparée (`rev`).
 Le fichier est lu en flux, note par note : des exports de plusieurs centaines de Mo (centaines de photos) passent sur PC. Le téléphone récupère les notes par la synchronisation. La liste affiche 200 notes puis « Afficher plus ».
+
+## Fenêtre de synchronisation des notes (par appareil)
+Notes ▸ Carnets ▸ « Notes récupérées depuis le Drive » : 30 jours (défaut sur téléphone), 90, 1 an ou toutes
+(défaut sur PC). Les notes plus anciennes restent sur le Drive ; un bloc en bas de la liste indique leur
+nombre, « Charger les 100 suivantes » les rapatrie par tranches, et une recherche de 3 caractères ou plus
+propose « Rechercher aussi sur le Drive » (titres indexés + contenu). Toute note modifiée localement est
+toujours envoyée, quel que soit son âge.
+
+## Raccourci global
+La page racine (choix Ventura / Kidebouchetou) est installable : icône « Rapports d'intervention ».
+La société choisie s'ouvre dans la même fenêtre. Les raccourcis par société restent utilisables.
