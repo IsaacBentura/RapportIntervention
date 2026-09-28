@@ -194,8 +194,7 @@ dialog h3{margin-bottom:12px}
   <header class="top">
     <h1 id="appTitle">Rapports d'intervention</h1>
     <button class="ico" onclick="sync.full(true)" id="btnSync" title="Synchroniser">↻</button>
-    <button onclick="go('clients')" title="Clients">Clients</button>
-    <button class="ico" onclick="dlgApps.showModal()" title="Applications">☰</button>
+    <button class="ico" onclick="dlgApps.showModal()" title="Menu">☰</button>
     <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
   </header>
   <div class="view">
@@ -396,6 +395,7 @@ dialog h3{margin-bottom:12px}
   <button class="optrow" onclick="location.href='./'">📋 Rapports d'intervention</button>
   <button class="optrow" onclick="location.href='./notes/'">📝 Notes</button>
   <button class="optrow" onclick="location.href='./factures/'">🧾 Facturation</button>
+  <button class="optrow" onclick="dlgApps.close();go('clients')">👤 Clients</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -805,7 +805,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.49';const BUILD_DATE='25/09/2026 à 13:53';
+const APP_VERSION='1.53';const BUILD_DATE='28/09/2026 à 14:01';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -1167,12 +1167,10 @@ function preview(){
    ========================================================= */
 // jsPDF (Helvetica) ne connaît que Latin-1 : on remplace les glyphes hors table
 function txt(s){return String(s??'').replace(/[\u2018\u2019\u201A]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"').replace(/\u2026/g,'...').replace(/[\u2212]/g,'-').replace(/\u00A0/g,' ').replace(/[✓✔]/g,'').replace(/[^\u0000-\u00FF\u0152\u0153\u2013\u2014\u20AC\u2022]/g,'')}
-async function exportPdf(){
-  readEditor();await save(true);
-  const waiting=(cur.videos||[]).filter(v=>v.status!=='done');
-  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur YouTube : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
+/*@REPORT_PDF_START*/
+function buildReportPdf(r,S,clientsList){
   const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
-  const S=settings,r=cur,cl=clients.find(c=>c.id===r.clientId);
+  const cl=(clientsList||[]).find(c=>c.id===r.clientId);
   const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;
   const BLUE=[58,127,196],PINK=[224,40,125],GREY=[68,68,68],LIGHT=[221,221,221],GREEN=[46,125,79];
   const footerText=S.footer||`${S.name} – ${S.title} – ${r.addr||''}`;
@@ -1255,8 +1253,15 @@ async function exportPdf(){
     for(const f of rfs){need(13);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt((f.kind==='audio'?'Audio : ':'Document : ')+f.name+(f.dur?' ('+fmtDur(f.dur)+')':'')+(f.cap?' – '+f.cap:'')),CW)[0],ML,y+3.5);
       doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...BLUE);doc.text(txt(f.link),ML,y+8);doc.link(ML,y,CW,10,{url:f.link});y+=12}}
   footer();
-  const name=`Rapport_${(r.num||r.date||'').replace(/[^\w-]/g,'_')}_${(r.addr||'intervention').split(',')[0].replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,40)}.pdf`;
-  const pdfBlob=doc.output('blob');sync.uploadPdf(name,pdfBlob);
+  return doc.output('blob');
+}
+/*@REPORT_PDF_END*/
+function reportPdfName(r){return `Rapport_${(r.num||r.date||'').replace(/[^\w-]/g,'_')}_${(r.addr||'intervention').split(',')[0].replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,40)}.pdf`}
+async function exportPdf(){
+  readEditor();await save(true);
+  const waiting=(cur.videos||[]).filter(v=>v.status!=='done');
+  if(waiting.length&&!confirm(`${waiting.length} vidéo(s) pas encore sur YouTube : le PDF n'aura pas de lien pour elle(s). Générer quand même ?`))return;
+  const pdfBlob=buildReportPdf(cur,settings,clients);const name=reportPdfName(cur);sync.uploadPdf(name,pdfBlob);
   await shareOrDownload(pdfBlob,name,'application/pdf');
 }
 async function shareOrDownload(blob,name,mime){
@@ -1330,6 +1335,7 @@ async function importData(file){
   if(!CAP&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(CAP)document.getElementById('storageNote').textContent="Les rapports sont stockés dans l'espace privé de l'application, indépendamment du navigateur. Ils sont perdus si l'application est désinstallée : faites une sauvegarde de temps en temps.";
   renderList();if(!sync.handleRedirect())sync.boot();else sync.boot();const hm=location.hash.match(/^#rapport=(.+)$/);if(hm){history.replaceState(null,'',location.pathname);const r=reports.find(x=>x.id===hm[1]);if(r)openReport(r.id);else toast('Rapport introuvable sur ce téléphone (synchronisez)')}
+  if(location.hash==='#clients'){history.replaceState(null,'',location.pathname);go('clients')}
   if(location.hash==='#connexion'||location.hash==='#youtube'){history.replaceState(null,'',location.pathname);go('settings');if(location.hash==='#youtube')setTimeout(()=>document.getElementById('btnYt').scrollIntoView(),300)}setTimeout(()=>videoUploader.run(),3000);
   if('serviceWorker' in navigator&&location.protocol.startsWith('http'))setupUpdates();
 })();

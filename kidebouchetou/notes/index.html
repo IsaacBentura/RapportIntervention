@@ -277,6 +277,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <button class="optrow" onclick="location.href='../'">📋 Rapports d'intervention</button>
   <button class="optrow" onclick="location.href='./'">📝 Notes</button>
   <button class="optrow" onclick="location.href='../factures/'">🧾 Facturation</button>
+  <button class="optrow" onclick="location.href='../factures/#clients'">👤 Clients</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -685,7 +686,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 /* =========================================================
    Société (dossier parent : /ventura/notes/ → ventura)
    ========================================================= */
-const APP_VERSION='1.49';const BUILD_DATE='25/09/2026 à 13:53';
+const APP_VERSION='1.53';const BUILD_DATE='28/09/2026 à 14:01';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Notes – Ventura',defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Notes – Kidebouchetou.com',defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},

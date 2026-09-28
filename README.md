@@ -99,3 +99,5 @@ validité des devis, TVA par défaut, conditions, assurance. Export CSV (facture
 Depuis un rapport : boutons « Créer un devis » / « Créer une facture » (client, objet et lien repris).
 Réserve : facturation électronique obligatoire (émission TPE/PME dès sept. 2027 pour les clients assujettis) –
 à traiter le moment venu (export vers une plateforme agréée).
+
+Envoi d'une facture ou d'un devis : si des rapports d'intervention sont liés, leur PDF est joint (deux pièces ou plus dans la feuille de partage). Menu ☰ commun : Rapports, Notes, Facturation, Clients.

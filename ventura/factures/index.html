@@ -165,9 +165,8 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <header class="top">
     <a class="back" href="../" title="Retour aux rapports"><span class="ico">‹</span><h1 id="appTitle">Facturation</h1></a>
     <button class="ico" onclick="sync.full()" id="btnSync" title="Synchroniser">↻</button>
-    <button onclick="go('clients')">Clients</button>
     <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
-    <button class="ico" onclick="dlgApps.showModal()" title="Applications">☰</button>
+    <button class="ico" onclick="dlgApps.showModal()" title="Menu">☰</button>
   </header>
   <div class="view">
     <div class="syncbar" id="syncbar"><span id="syncTxt"></span><button id="syncBtn"></button></div>
@@ -299,6 +298,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <button class="optrow" onclick="location.href='../'">📋 Rapports d'intervention</button>
   <button class="optrow" onclick="location.href='../notes/'">📝 Notes</button>
   <button class="optrow" onclick="location.href='./'">🧾 Facturation</button>
+  <button class="optrow" onclick="dlgApps.close();go('clients')">👤 Clients</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -705,7 +705,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 </script>
 <script>
 /* ========================================================= Société ========================================================= */
-const APP_VERSION='1.49';const BUILD_DATE='25/09/2026 à 13:53';
+const APP_VERSION='1.53';const BUILD_DATE='28/09/2026 à 14:01';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Facturation – Ventura',rapportsDrive:"Rapports d'intervention",prefix:{devis:'D',facture:'F'},defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Facturation – Kidebouchetou.com',rapportsDrive:"Rapports d'intervention – Kidebouchetou.com",prefix:{devis:'D',facture:'F'},defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -859,7 +859,7 @@ function localNext(kind,year){const mx=live().filter(d=>d.type===kind&&d.num&&d.
 /* numérotation à l'émission : compteur sur le Drive, vérifié après écriture */
 async function issue(){
   const year=(cur.date||today()).slice(0,4);const kind=cur.type;const online=navigator.onLine&&sync.connected();
-  if(!online&&!sync.isMobile()){toast("Sur ordinateur, l'émission nécessite la connexion Google");return}
+  if(!online&&!sync.isMobile()){toast(sync.connected()?"Réseau indisponible : l'émission depuis un ordinateur nécessite la connexion":"Sur ordinateur, connectez-vous à Google (app Rapports ▸ Réglages) pour émettre");return}
   btnMain.disabled=true;btnMain.textContent='Numérotation…';
   try{let n;if(online){n=await sync.nextNumber(kind,year)}else{n=localNext(kind,year);toast('Hors ligne : numéro attribué localement, vérifié à la prochaine synchro')}cur.num=`${COMPANY.prefix[kind]}-${year}-${String(n).padStart(4,'0')}`;cur.issuedAt=Date.now();if(kind==='devis')cur.status='sent';
     readEditor();await save(true);fillEditor();toast((kind==='facture'?'Facture ':'Devis ')+cur.num+' émis(e)');
@@ -952,9 +952,142 @@ async function exportPdf(){readEditor();await save(true);const {jsPDF}=window.js
   // mentions légales en pied de chaque page
   const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,90,90);const ll=doc.splitTextToSize(txt(legalLines(d).join(' ')),CW);doc.text(ll.slice(0,5),ML,H-BOT+6);doc.setFontSize(8);doc.text(`${isF?'Facture':'Devis'} ${txt(d.num||'')} – page ${i}/${pages}`,ML+CW,H-6,{align:'right'})}
   const name=`${isF?'Facture':'Devis'}_${(d.num||'brouillon').replace(/[^\w-]/g,'_')}_${(c.name||'').replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,30)}.pdf`;const blob=doc.output('blob');
-  sync.uploadPdf(name,blob);const file=new File([blob],name,{type:'application/pdf'});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return}catch(e){if(e.name==='AbortError')return}}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+  sync.uploadPdf(name,blob);const files=[new File([blob],name,{type:'application/pdf'})];
+  const head_=Object.assign({},head,JSON.parse(localStorage.getItem(LS('settings'))||'{}'));
+  for(const id of (d.reportIds||[])){const r=reports.find(x=>x.id===id);if(!r)continue;try{const rb=buildReportPdf(r,head_,clients);files.push(new File([rb],reportPdfName(r),{type:'application/pdf'}))}catch(e){console.warn('PDF rapport',e)}}
+  if(files.length>1)toast(`${files.length} pièces : ${isF?'facture':'devis'} + ${files.length-1} rapport(s)`);
+  if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:name});return}catch(e){if(e.name==='AbortError')return}}
+  for(const fl of files){const a=document.createElement('a');a.href=URL.createObjectURL(fl);a.download=fl.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);await new Promise(r=>setTimeout(r,400))}}
+const DAYS='LUNDI|MARDI|MERCREDI|JEUDI|VENDREDI|SAMEDI|DIMANCHE';
+
+const reDay=new RegExp(`^(${DAYS})\\s+\\d{1,2}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}\\s*:?$`,'i');
+
+const reNum=/^\d+[.)]\s+\S/;
+
+const reBullet=/^[-•*–]\s+/;
+
+const reCheck=/^(✓|✔|v|V|\[x\]|\[X\])\s+/;
+
+const reLabel=/^(Résultat|Resultat|Constat|Remarque|Conclusion|Observation|Important|Note|Recommandation)\s*:\s*/i;
+
+function isUpper(s){const letters=s.replace(/[^A-Za-zÀ-ÿ]/g,'');return letters.length>=3&&letters===letters.toUpperCase()}
+
+function parse(text){
+  const lines=(text||'').replace(/\r/g,'').split('\n');const out=[];let list=null;
+  const flush=()=>{if(list){out.push(list);list=null}};
+  for(let raw of lines){
+    const s=raw.trim();
+    if(!s||/^-{3,}$/.test(s)){flush();continue}
+    if(reBullet.test(s)){const t=s.replace(reBullet,'');if(!list||list.type!=='ul'){flush();list={type:'ul',items:[]}}list.items.push(t);continue}
+    if(reCheck.test(s)){const t=s.replace(reCheck,'');if(!list||list.type!=='ck'){flush();list={type:'ck',items:[]}}list.items.push(t);continue}
+    flush();
+    if(reDay.test(s)){out.push({type:'day',text:s.replace(/\s*:$/,'').toUpperCase()});continue}
+    if(reNum.test(s)&&isUpper(s)){out.push({type:'h1',text:s});continue}
+    if(isUpper(s)){out.push({type:'h2',text:s});continue}
+    const m=s.match(reLabel);
+    if(m&&s.length>m[0].length){out.push({type:'p',label:m[0].trim(),text:s.slice(m[0].length)});continue}
+    if(s.length<=70&&!/[.!?…]$/.test(s)&&/^[A-ZÀ-Ý]/.test(s)&&s.split(' ').length<=10){out.push({type:'h3',text:s});continue}
+    out.push({type:'p',text:s});
+  }
+  flush();return out;
+}
+const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
+
+const fmtSize=b=>b>1e9?(b/1e9).toFixed(2)+' Go':b>1e6?Math.round(b/1e6)+' Mo':Math.round(b/1e3)+' Ko';
+
+const fmtDur=s=>s?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'';
+
+function reportPdfName(r){return `Rapport_${(r.num||r.date||'').replace(/[^\w-]/g,'_')}_${(r.addr||'intervention').split(',')[0].replace(/[^\wÀ-ÿ-]+/g,'_').slice(0,40)}.pdf`}
+
+/*@REPORT_PDF_START*/
+function buildReportPdf(r,S,clientsList){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
+  const cl=(clientsList||[]).find(c=>c.id===r.clientId);
+  const W=210,H=297,ML=20,MR=20,CW=W-ML-MR,TOP=18,BOT=18;let y=TOP;
+  const BLUE=[58,127,196],PINK=[224,40,125],GREY=[68,68,68],LIGHT=[221,221,221],GREEN=[46,125,79];
+  const footerText=S.footer||`${S.name} – ${S.title} – ${r.addr||''}`;
+  const footer=()=>{const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...GREY);
+    doc.text(txt(footerText),ML,H-10,{maxWidth:CW-25});doc.text(`Page ${i} / ${n}`,W-MR,H-10,{align:'right'})}};
+  const need=h=>{if(y+h>H-BOT){doc.addPage();y=TOP}};
+  const line=(s,size,style,color,opts={})=>{doc.setFont('helvetica',style);doc.setFontSize(size);doc.setTextColor(...color);
+    const x=opts.x??ML,w=opts.w??CW;const ls=doc.splitTextToSize(txt(s),w);const lh=size*0.3527*(opts.lh||1.4);
+    for(const l of ls){need(lh);doc.text(l,opts.align==='right'?x+w:x,y+lh*0.75,{align:opts.align||'left'});y+=lh}};
+  // en-tête
+  const y0=y;
+  if(S.logo&&S.logoW&&S.logoH){const maxW=45,maxH=22;const s=Math.min(maxW/S.logoW,maxH/S.logoH);
+    try{doc.addImage(S.logo,S.logo.startsWith('data:image/png')?'PNG':'JPEG',ML,y0,S.logoW*s,S.logoH*s,undefined,'FAST')}catch(e){}}
+  line(S.name,10,'bold',[34,34,34],{align:'right',x:ML+50,w:CW-50});[S.addr,S.tel,S.mail,S.rcs].filter(Boolean).forEach(t=>line(t,9,'normal',GREY,{align:'right',lh:1.3,x:ML+50,w:CW-50}));
+  if(S.logo&&S.logoW&&S.logoH){const s=Math.min(45/S.logoW,22/S.logoH);y=Math.max(y,y0+S.logoH*s+2)}
+  y+=6;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(...BLUE);doc.text(txt(S.title),W/2,y+6,{align:'center'});y+=14;
+  line(`Date d'intervention : ${fmtDate(r.date)}${r.num?'   ·   N° '+r.num:''}`,9.5,'normal',GREY);
+  y+=3;line("Détails de l'intervention",12,'bold',PINK);y+=2;
+  // tableau méta
+  const meta=[];if(cl)meta.push(['Client :',cl.name+(cl.contact?'\n'+cl.contact:'')]);if(r.addr)meta.push(["Adresse d'intervention :",r.addr.replace(/,\s*/g,'\n')]);if(r.obj)meta.push(['Objet :',r.obj]);
+  for(const [k,v] of meta){doc.setFontSize(9.5);const vl=doc.splitTextToSize(txt(v),CW-52);const h=Math.max(1,vl.length)*4.8+3;need(h);
+    doc.setFont('helvetica','bold');doc.setTextColor(...GREY);doc.text(txt(k),ML,y+4);doc.setFont('helvetica','normal');doc.text(vl,ML+50,y+4);
+    y+=h;doc.setDrawColor(...LIGHT);doc.setLineWidth(.2);doc.line(ML,y,W-MR,y);y+=1}
+  y+=4;
+  // corps
+  for(const b of parse(r.text)){
+    if(b.type==='h1'){y+=4;line(b.text,12,'bold',BLUE);y+=1}
+    else if(b.type==='day'){y+=4;need(9);doc.setFillColor(...BLUE);doc.rect(ML,y,CW,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(255,255,255);doc.text(txt(b.text),ML+3,y+5);y+=10}
+    else if(b.type==='h2'){y+=2;line(b.text,10.5,'bold',GREY);y+=1}
+    else if(b.type==='h3'){y+=1.5;line(b.text,10,'bold',GREY);}
+    else if(b.type==='p'){
+      if(b.label){doc.setFont('helvetica','bold');doc.setFontSize(9.5);const lw=doc.getTextWidth(txt(b.label)+' ');
+        const ls=doc.splitTextToSize(txt(b.text),CW-lw);const lh=9.5*0.3527*1.4;need(lh);doc.setTextColor(...GREY);doc.text(txt(b.label),ML,y+lh*.75);
+        doc.setFont('helvetica','normal');doc.text(ls[0],ML+lw,y+lh*.75);y+=lh;for(const l of ls.slice(1)){need(lh);doc.text(l,ML,y+lh*.75);y+=lh}y+=1.5}
+      else{line(b.text,9.5,'normal',GREY);y+=1.5}}
+    else if(b.type==='ul'||b.type==='ck'){
+      for(const it of b.items){const ls=doc.splitTextToSize(txt(it),CW-8);const lh=9.5*0.3527*1.4;need(lh*ls.length);
+        if(b.type==='ul'){doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);doc.text('–',ML+1.5,y+lh*.75)}
+        else{doc.setDrawColor(...GREEN);doc.setLineWidth(.5);const cx=ML+1.5,cy=y+lh*.5;doc.line(cx,cy,cx+1.2,cy+1.4);doc.line(cx+1.2,cy+1.4,cx+3.2,cy-1.6)}
+        doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY);
+        for(const l of ls){doc.text(l,ML+7,y+lh*.75);y+=lh}}
+      y+=2}
+  }
+  // photos en fin
+  if(r.photos.length){
+    doc.addPage();y=TOP;line("Photos de l'intervention",12,'bold',PINK);y+=4;
+    const gap=8,cw=(CW-gap)/2,ch=95;
+    for(let i=0;i<r.photos.length;i+=2){
+      const pair=r.photos.slice(i,i+2);let capH=0;
+      pair.forEach(p=>{if(p.cap){doc.setFontSize(8.5);capH=Math.max(capH,doc.splitTextToSize(txt(p.cap),cw).length*3.8+2)}});
+      need(ch+capH+6);
+      pair.forEach((p,j)=>{const x=ML+j*(cw+gap);const s=Math.min(cw/p.w,ch/p.h);const w=p.w*s,h=p.h*s;
+        doc.addImage(p.data,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST');
+        if(p.cap){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt(p.cap),cw),x+cw/2,y+ch+4,{align:'center'})}});
+      y+=ch+capH+8;
+    }
+  }
+  // vidéos : vignette cliquable + lien
+  const vids=(r.videos||[]);
+  if(vids.length){
+    const gap=8,cw=(CW-gap)/2,ch=52;
+    if(y+70>H-BOT){doc.addPage();y=TOP}else y+=4;
+    line("Vidéos de l'intervention",12,'bold',PINK);y+=3;
+    for(let i=0;i<vids.length;i+=2){
+      const pair=vids.slice(i,i+2);need(ch+22);
+      pair.forEach((v,j)=>{const x=ML+j*(cw+gap);
+        doc.setFillColor(40,40,40);doc.rect(x,y,cw,ch,'F');
+        if(v.thumb){try{const s=(v.tw&&v.th)?Math.min(cw/v.tw,ch/v.th):0;const w=s?v.tw*s:cw,h=s?v.th*s:ch;doc.addImage(v.thumb,'JPEG',x+(cw-w)/2,y+(ch-h)/2,w,h,undefined,'FAST')}catch(e){}}
+        const cx=x+cw/2,cy=y+ch/2;doc.setFillColor(27,39,51);doc.setDrawColor(255,255,255);doc.setLineWidth(.6);doc.circle(cx,cy,6,'FD');doc.setFillColor(255,255,255);doc.triangle(cx-2,cy-3.4,cx-2,cy+3.4,cx+3.6,cy,'F');
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GREY);let ty=y+ch+4;
+        if(v.cap){const cl=doc.splitTextToSize(txt(v.cap),cw);doc.text(cl,x,ty);ty+=cl.length*3.8}
+        if(v.link){doc.setTextColor(...BLUE);doc.setFontSize(7.5);const ll=doc.splitTextToSize(v.link,cw);doc.text(ll,x,ty);doc.link(x,y,cw,ch,{url:v.link});doc.link(x,ty-3,cw,ll.length*3.4,{url:v.link})}
+        else{doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text("Vidéo en cours d'envoi sur YouTube : lien non disponible",x,ty)}
+        if(v.dur){doc.setTextColor(...GREY);doc.setFontSize(7.5);doc.text('Durée '+fmtDur(v.dur)+' · '+fmtSize(v.size),x+cw,y+ch+4,{align:'right'})}});
+      y+=ch+22;
+    }
+  }
+  const rfs=(r.files||[]);
+  if(rfs.length){if(y+40>H-BOT){doc.addPage();y=TOP}else y+=4;line('Pièces jointes',12,'bold',PINK);y+=2;
+    for(const f of rfs){need(13);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GREY);doc.text(doc.splitTextToSize(txt((f.kind==='audio'?'Audio : ':'Document : ')+f.name+(f.dur?' ('+fmtDur(f.dur)+')':'')+(f.cap?' – '+f.cap:'')),CW)[0],ML,y+3.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...BLUE);doc.text(txt(f.link),ML,y+8);doc.link(ML,y,CW,10,{url:f.link});y+=12}}
+  footer();
+  return doc.output('blob');
+}
+
 
 /* ========================================================= Export CSV ========================================================= */
 function exportCsv(kind){const from=x_from.value||'0000',to=x_to.value||'9999';const inv=live().filter(d=>d.type==='facture'&&d.num&&d.date>=from&&d.date<=to).sort((a,b)=>a.num.localeCompare(b.num));
@@ -976,7 +1109,7 @@ function saveSettings(){fs={siret:s_siret.value.trim(),tva:s_tva.value.trim(),fo
 /* ========================================================= Synchro Drive ========================================================= */
 const sync={
   tok:null,folderId:null,pdfFolderId:null,repFolderId:null,busy:false,timer:null,clientsDirty:false,
-  isMobile(){return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<900)},lastSync:+localStorage.getItem(LS('fact_lastSync'))||0,
+  isMobile(){return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)},lastSync:+localStorage.getItem(LS('fact_lastSync'))||0,
   clientId(){return (head.gClientId||GOOGLE_CLIENT_ID||'').trim()},clientSecret(){return (head.gClientSecret||GOOGLE_CLIENT_SECRET||'').trim()},
   configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())&&this.clientSecret().length>10&&!/^__/.test(this.clientSecret())},
   connected(){return localStorage.getItem('gconnected')==='1'},
@@ -1050,6 +1183,7 @@ async function applyUpdate(){if(cur&&dirty)await save(true);if(swReg&&swReg.wait
 (async()=>{
   try{await store.init();docs=await store.all();clients=await repDb.all('clients');reports=await repDb.all('reports')}catch(e){alert('Stockage local indisponible : '+e)}
   renderList();
+  if(location.hash==='#clients'){history.replaceState(null,'',location.pathname);go('clients')}
   const hm=location.hash.match(/^#(new)=(devis|facture)(?:&rapport=([^&]+))?$/)||location.hash.match(/^#doc=(.+)$/);
   if(hm){history.replaceState(null,'',location.pathname);
     if(hm[1]==='new'){const r=hm[3]?reports.find(x=>x.id===hm[3]):null;newDoc(hm[2],r?{clientId:clients.some(c=>c.id===r.clientId)?r.clientId:'',obj:r.obj||'',reportIds:[r.id]}:{});if(r&&!cur.clientId)toast('Client du rapport non trouvé : choisissez-le')}
