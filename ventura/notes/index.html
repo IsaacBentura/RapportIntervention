@@ -686,7 +686,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 /* =========================================================
    Société (dossier parent : /ventura/notes/ → ventura)
    ========================================================= */
-const APP_VERSION='1.53';const BUILD_DATE='28/09/2026 à 14:01';
+const APP_VERSION='1.54';const BUILD_DATE='28/09/2026 à 14:41';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Notes – Ventura',defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Notes – Kidebouchetou.com',defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -698,12 +698,13 @@ document.documentElement.style.setProperty('--blue',COMPANY.color);
 document.querySelector('meta[name=theme-color]').content=COMPANY.color;
 document.title='Notes – '+COMPANY.label;document.getElementById('appTitle').textContent='Notes – '+COMPANY.label;
 document.querySelectorAll('.verTxt').forEach(e=>e.textContent=APP_VERSION);document.querySelectorAll('.buildTxt').forEach(e=>e.textContent=BUILD_DATE);
+const builtin=(s)=>s&&!/^__/.test(s)&&s.length>10;
 const GOOGLE_CLIENT_SECRET=(s=>{try{return atob(s.split('').reverse().join(''))}catch(e){return ''}})('=skawEzapFlV2dTaq1WLz9lUp5ET31GT1NDdkNULYB1UD90R');
 const GOOGLE_CLIENT_ID='882950350881-gkear6luqrh0qp88mjik8ighh402v02t.apps.googleusercontent.com';
 // réglages partagés avec l'app Rapports (même clé locale)
 const DEF_SETTINGS=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0,title:"NOTE",footer:'',px:1280,q:0.72},COMPANY.defaults);
 let settings=Object.assign({},DEF_SETTINGS,JSON.parse(localStorage.getItem(LS('settings'))||'{}'));
-if(!settings.gClientId)settings.gClientId=GOOGLE_CLIENT_ID;if(!settings.gClientSecret)settings.gClientSecret=GOOGLE_CLIENT_SECRET;
+
 
 /* ================= stockage local ================= */
 const DB_NAME='notes-'+COMPANY_KEY;let db;
@@ -1112,7 +1113,7 @@ const sync={
   isMobile(){return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<900)},
   windowDays(){const v=localStorage.getItem(LS('notes_window'));return v===null?(this.isMobile()?30:0):+v},
   setWindow(v){localStorage.setItem(LS('notes_window'),String(+v));toast(+v?`Notes des ${v} derniers jours`:'Toutes les notes');this.full()},
-  clientId(){return (settings.gClientId||GOOGLE_CLIENT_ID||'').trim()},clientSecret(){return (settings.gClientSecret||GOOGLE_CLIENT_SECRET||'').trim()},
+  clientId(){return (builtin(GOOGLE_CLIENT_ID)?GOOGLE_CLIENT_ID:(settings.gClientId||'')).trim()},clientSecret(){return (builtin(GOOGLE_CLIENT_SECRET)?GOOGLE_CLIENT_SECRET:(settings.gClientSecret||'')).trim()},
   configured(){return /\.apps\.googleusercontent\.com$/.test(this.clientId())&&this.clientSecret().length>10&&!/^__/.test(this.clientSecret())},
   connected(){return localStorage.getItem('gconnected')==='1'},
   pending(){return JSON.parse(localStorage.getItem(LS('notes_pending'))||'{"n":{},"nb":{}}')},
