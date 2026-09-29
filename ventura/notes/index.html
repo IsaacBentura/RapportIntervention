@@ -215,6 +215,9 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
         <option value="30">Modifiées depuis 30 jours</option><option value="90">Depuis 90 jours</option><option value="365">Depuis 1 an</option><option value="0">Toutes les notes</option>
       </select></div>
     <p class="hint" style="font-size:13px;color:var(--ink3)">Les notes plus anciennes restent sur le Drive et se chargent à la demande (bouton en bas de la liste, ou recherche). Tout ce qui est modifié ici est toujours envoyé.</p>
+    <div class="sect">Corbeille de synchronisation</div>
+    <div id="syncTrash"></div>
+    <p class="hint" style="font-size:13px;color:var(--ink3)">Notes retirées de cet appareil par la synchronisation (60 jours).</p>
     <div class="sect">Import</div>
     <label class="addph" style="cursor:pointer">📥 Importer depuis Evernote (.enex)<input type="file" accept=".enex,application/xml,text/xml" multiple class="hidden" onchange="enex.pick(this.files);this.value=''"></label>
     <p class="hint" style="font-size:13px;color:var(--ink3);margin-top:8px">Dans Evernote sur ordinateur : clic droit sur un carnet ▸ Exporter le carnet ▸ format ENEX. Un fichier par carnet : le carnet est recréé ici avec le même nom. À faire de préférence depuis le PC ; les notes arrivent ensuite sur le téléphone par la synchronisation.</p>
@@ -278,6 +281,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <button class="optrow" onclick="location.href='./'">📝 Notes</button>
   <button class="optrow" onclick="location.href='../factures/'">🧾 Facturation</button>
   <button class="optrow" onclick="location.href='../factures/#clients'">👤 Clients</button>
+  <button class="optrow" onclick="dlgApps.close();go('notebooks')">📚 Carnets, import et réglages</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -686,7 +690,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 /* =========================================================
    Société (dossier parent : /ventura/notes/ → ventura)
    ========================================================= */
-const APP_VERSION='1.54';const BUILD_DATE='28/09/2026 à 14:41';
+const APP_VERSION='1.62';const BUILD_DATE='29/09/2026 à 10:50';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Notes – Ventura',defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Notes – Kidebouchetou.com',defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -1045,9 +1049,19 @@ const enex={files:[],cancelled:false,
   }
 };
 
+
+/* ---- corbeille de synchronisation : ce que la synchro retire localement est conservé 60 jours ---- */
+const syncBackup={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('sync-backup-'+COMPANY_KEY,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('items',{keyPath:'key'});r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async put(kind,data){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').put({key:kind+':'+data.id,kind,id:data.id,at:Date.now(),data});t.oncomplete=res;t.onerror=res})},
+  async all(kind){const d=await this.open();return new Promise(res=>{const r=d.transaction('items').objectStore('items').getAll();r.onsuccess=()=>res((r.result||[]).filter(x=>!kind||x.kind===kind).sort((a,b)=>b.at-a.at));r.onerror=()=>res([])})},
+  async del(key){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').delete(key);t.oncomplete=res;t.onerror=res})},
+  async purge(){const lim=Date.now()-60*86400000;for(const x of await this.all())if(x.at<lim)await this.del(x.key)}};
+
 /* ================= carnets ================= */
 let editingNb=null,nbFromEditor=false;
-function renderNotebooks(){const sw=document.getElementById('syncWin');if(sw)sw.value=String(sync.windowDays());const el=document.getElementById('nbList');
+async function renderSyncTrash(){const el=document.getElementById('syncTrash');if(!el)return;await syncBackup.purge();const items=await syncBackup.all('note');el.innerHTML=items.length?items.map(x=>`<div class="nbrow"><div class="n"><b>${esc(x.data.title||firstLine(x.data.body)||'(sans titre)')}</b><span>retirée le ${new Date(x.at).toLocaleDateString('fr-FR')}</span></div><button onclick="restoreBackup('${x.key}')">Restaurer</button></div>`).join(''):'<p class="hint" style="margin:0">Rien à restaurer.</p>'}
+async function restoreBackup(key){const x=(await syncBackup.all('note')).find(i=>i.key===key);if(!x)return;const nn=x.data;nn.driveId='';nn.driveFolder='';nn.rev=Date.now();await store.put('notes',nn);if(!notes.some(y=>y.id===nn.id))notes.push(nn);await syncBackup.del(key);sync.schedule();renderSyncTrash();toast('Note restaurée')}
+function renderNotebooks(){renderSyncTrash();const sw=document.getElementById('syncWin');if(sw)sw.value=String(sync.windowDays());const el=document.getElementById('nbList');
   if(!notebooks.length){el.innerHTML='<div class="empty"><h2>Aucun carnet</h2><p>Les carnets regroupent vos notes par thème (chantiers, fournisseurs, idées…).</p></div>';return}
   el.innerHTML=notebooks.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(n=>{const c=live().filter(x=>x.notebookId===n.id).length;return `<div class="nbrow"><button class="n" onclick="filterNbs.clear();filterNbs.add('${n.id}');onlyRem=false;go('list')" style="text-align:left"><b>${esc(n.name)}</b><span>${c} note${c>1?'s':''} · voir</span></button><button onclick="editNotebook('${n.id}')">Renommer</button><button class="del" onclick="deleteNotebook('${n.id}')">×</button></div>`}).join('')}
 function editNotebook(id,fromEditor){nbFromEditor=!!fromEditor;editingNb=id?notebooks.find(n=>n.id===id):null;dlgNbTitle.textContent=editingNb?'Renommer le carnet':'Nouveau carnet';nb_name.value=editingNb?editingNb.name:'';dlgNb.showModal();setTimeout(()=>nb_name.focus(),50)}
@@ -1181,15 +1195,15 @@ const sync={
     try{await this.ensureFolder();const p=this.pending();const files=await this.list();const byName=Object.fromEntries(files.map(f=>[f.name,f]));
       for(const id of Object.keys(p.n)){const f=byName['n_'+id+'.json'];if(f)await this.remove(f.id);delete p.n[id]}
       for(const n of notes.slice()){try{const f=byName['n_'+n.id+'.json'];
-        if(!f){if(n.driveId){await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id)}else{n.driveId=await this.uploadJson('n_'+n.id+'.json',n,null,{updatedAt:String(revOf(n))});await store.put('notes',n)}continue}
+        if(!f){if(n.driveId&&n.driveFolder===this.folderId){await syncBackup.put('note',n);await store.del('notes',n.id);notes=notes.filter(x=>x.id!==n.id)}else{n.driveId=await this.uploadJson('n_'+n.id+'.json',n,null,{updatedAt:String(revOf(n))});n.driveFolder=this.folderId;await store.put('notes',n)}continue}
         const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(revOf(n)>ru){await this.uploadJson('n_'+n.id+'.json',n,f.id,{updatedAt:String(revOf(n))});n.driveId=f.id;await store.put('notes',n)}
-        else if(revOf(n)<ru){const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes[notes.findIndex(x=>x.id===n.id)]=nn;if(cur&&cur.id===nn.id&&!dirty)cur=JSON.parse(JSON.stringify(nn))}
-        else if(!n.driveId){n.driveId=f.id;await store.put('notes',n)}}catch(e){if(!/404/.test(e.message))throw e}}
+        if(revOf(n)>ru){await this.uploadJson('n_'+n.id+'.json',n,f.id,{updatedAt:String(revOf(n))});n.driveId=f.id;n.driveFolder=this.folderId;await store.put('notes',n)}
+        else if(revOf(n)<ru){const nn=await this.download(f.id);nn.driveId=f.id;nn.driveFolder=this.folderId;await store.put('notes',nn);notes[notes.findIndex(x=>x.id===n.id)]=nn;if(cur&&cur.id===nn.id&&!dirty)cur=JSON.parse(JSON.stringify(nn))}
+        else if(!n.driveId||n.driveFolder!==this.folderId){n.driveId=f.id;n.driveFolder=this.folderId;await store.put('notes',n)}}catch(e){if(!/404/.test(e.message))throw e}}
       const win=this.windowDays();const minRev=win?Date.now()-win*86400000:0;this.remote=[];
       for(const f of files){if(!f.name.startsWith('n_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);if(notes.some(n=>n.id===id)||p.n[id])continue;
         const rv=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(rv>=minRev){try{const nn=await this.download(f.id);nn.driveId=f.id;await store.put('notes',nn);notes.push(nn)}catch(e){if(!/404/.test(e.message))throw e}}
+        if(rv>=minRev){try{const nn=await this.download(f.id);nn.driveId=f.id;nn.driveFolder=this.folderId;await store.put('notes',nn);notes.push(nn)}catch(e){if(!/404/.test(e.message))throw e}}
         else this.remote.push({id,fileId:f.id,rev:rv,title:(f.appProperties&&f.appProperties.t)||''})}
       this.remote.sort((a,b)=>b.rev-a.rev);
       // carnets : fusion

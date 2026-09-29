@@ -165,7 +165,6 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <header class="top">
     <a class="back" href="../" title="Retour aux rapports"><span class="ico">‹</span><h1 id="appTitle">Facturation</h1></a>
     <button class="ico" onclick="sync.full()" id="btnSync" title="Synchroniser">↻</button>
-    <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
     <button class="ico" onclick="dlgApps.showModal()" title="Menu">☰</button>
   </header>
   <div class="view">
@@ -254,10 +253,13 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
     <div class="field"><label>IBAN (imprimé sur les factures)</label><input id="s_iban"></div>
     <div class="field"><label>BIC</label><input id="s_bic"></div>
     <div class="row"><div class="field"><label>Délai de paiement (jours)</label><input type="number" id="s_delay" value="30"></div><div class="field"><label>Validité des devis (jours)</label><input type="number" id="s_valid" value="30"></div></div>
-    <div class="field"><label>Taux de TVA par défaut</label><select id="s_tvaDef"><option value="20">20 %</option><option value="10">10 % (travaux logement > 2 ans)</option><option value="5.5">5,5 %</option><option value="0">0 %</option></select></div>
+    <div class="field"><label>Taux de TVA par défaut</label><select id="s_tvaDef"><option value="10">10 % (travaux logement > 2 ans)</option><option value="20">20 %</option><option value="5.5">5,5 %</option><option value="0">0 %</option></select></div>
     <div class="field"><label>Conditions de paiement (imprimées)</label><textarea id="s_terms" rows="2">Paiement à réception de facture, par virement ou chèque.</textarea></div>
     <div class="field"><label>Mention d'assurance / garantie (facultatif)</label><input id="s_assur" placeholder="Assurance décennale n°… – Assureur"></div>
     <button class="btn" onclick="saveSettings()">Enregistrer</button>
+    <div class="sect">Corbeille de synchronisation</div>
+    <div id="syncTrash"></div>
+    <p class="hint" style="font-size:13px;color:var(--ink3)">Documents retirés de cet appareil par la synchronisation (60 jours).</p>
     <div class="sect">Export comptable</div>
     <div class="row"><div class="field"><label>Du</label><input type="date" id="x_from"></div><div class="field"><label>Au</label><input type="date" id="x_to"></div></div>
     <div class="rg"><button class="btn sec" onclick="exportCsv('factures')">Factures (CSV)</button><button class="btn sec" onclick="exportCsv('paiements')">Paiements (CSV)</button></div>
@@ -299,6 +301,7 @@ dialog h3{margin-bottom:12px}.rg{display:flex;gap:10px;margin-top:6px}.rg .btn{f
   <button class="optrow" onclick="location.href='../notes/'">📝 Notes</button>
   <button class="optrow" onclick="location.href='./'">🧾 Facturation</button>
   <button class="optrow" onclick="dlgApps.close();go('clients')">👤 Clients</button>
+  <button class="optrow" onclick="dlgApps.close();go('settings')">⚙ Réglages facturation</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -705,7 +708,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 </script>
 <script>
 /* ========================================================= Société ========================================================= */
-const APP_VERSION='1.54';const BUILD_DATE='28/09/2026 à 14:41';
+const APP_VERSION='1.62';const BUILD_DATE='29/09/2026 à 10:50';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:'Facturation – Ventura',rapportsDrive:"Rapports d'intervention",prefix:{devis:'D',facture:'F'},defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
   kidebouchetou:{label:'Kidebouchetou.com',color:'#0b6e6a',drive:'Facturation – Kidebouchetou.com',rapportsDrive:"Rapports d'intervention – Kidebouchetou.com",prefix:{devis:'D',facture:'F'},defaults:{name:'Kidebouchetou.com',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -721,7 +724,7 @@ const GOOGLE_CLIENT_SECRET=(s=>{try{return atob(s.split('').reverse().join(''))}
 const DEF_HEAD=Object.assign({gClientId:GOOGLE_CLIENT_ID,gClientSecret:GOOGLE_CLIENT_SECRET,logo:'',logoW:0,logoH:0},COMPANY.defaults);
 let head=Object.assign({},DEF_HEAD,JSON.parse(localStorage.getItem(LS('settings'))||'{}'));
 // réglages facturation (synchronisés dans le dossier Facturation)
-const DEF_FS={siret:'',tva:'',forme:'',ape:'',iban:'',bic:'',delay:30,valid:30,tvaDef:20,terms:'Paiement à réception de facture, par virement ou chèque.',assur:'',updatedAt:0};
+const DEF_FS={siret:'',tva:'',forme:'',ape:'',iban:'',bic:'',delay:30,valid:30,tvaDef:10,terms:'Paiement à réception de facture, par virement ou chèque.',assur:'',updatedAt:0};
 let fs=Object.assign({},DEF_FS,JSON.parse(localStorage.getItem(LS('fact_settings'))||'{}'));
 
 /* ========================================================= Stockage ========================================================= */
@@ -801,7 +804,7 @@ function fillEditor(){const isF=cur.type==='facture';
   document.getElementById('paySect').classList.toggle('hidden',!(isF&&cur.num));
   const lk=locked();document.getElementById('lockNote').classList.toggle('hidden',!lk);if(lk)lockNote.textContent='Facture émise : les lignes et montants ne sont plus modifiables. Pour corriger, créez un avoir ou une nouvelle facture (menu ⋯).';
   ['f_date','f_due','f_obj','f_disc','f_dep','f_client','f_clientQ'].forEach(id=>document.getElementById(id).disabled=lk);document.querySelectorAll('#lines input,#lines select,#lines button').forEach(e=>e.disabled=lk);
-  const st=status(cur);btnMain.textContent=isF?(cur.num?(st==='paid'?'Payée ✓':'Paiement reçu'):'Émettre la facture'):(cur.num?(st==='accepted'?'Créer la facture':st==='converted'?'Voir la facture':'Devis accepté'):'Établir le devis');
+  const st=status(cur);btnMain.textContent=isF?(cur.num?'PDF':'Émettre la facture'):(cur.num?(st==='accepted'?'Créer la facture':st==='converted'?'Voir la facture':'Devis accepté'):'Établir le devis');
   editMeta.textContent=`Créé le ${new Date(cur.createdAt).toLocaleDateString('fr-FR')}${cur.issuedAt?' · émis le '+new Date(cur.issuedAt).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):''}${cur.fromDevisId?' · issu du devis '+((docs.find(x=>x.id===cur.fromDevisId)||{}).num||''):''}`;
   dirty=false}
 function readEditor(){if(locked())return;cur.date=f_date.value;if(cur.type==='facture')cur.dueDate=f_due.value;else cur.validUntil=f_due.value;cur.obj=f_obj.value.trim();cur.discount=+f_disc.value||0;cur.deposit=+f_dep.value||0;cur.notes=f_notes.value;cur.clientId=f_client.value==='__new'?(cur.clientId||''):f_client.value;
@@ -852,7 +855,7 @@ async function mainAction(){readEditor();const isF=cur.type==='facture';const st
   if(!cur.clientId){toast('Choisissez un client');f_clientQ.focus();return}
   if(!(cur.lines||[]).some(l=>l.label&&(+l.pu||0)>=0)){toast('Ajoutez au moins une ligne');return}
   if(!cur.num){await issue();return}
-  if(isF){if(st==='paid'){toast('Facture déjà réglée');return}payDialog();return}
+  if(isF){exportPdf();return}
   if(st==='accepted'){await convertToInvoice();return}if(st==='converted'){if(cur.factureId)openDoc(cur.factureId);return}
   cur.status='accepted';await save(true);fillEditor();toast('Devis marqué accepté')}
 /* hors ligne (téléphone) : plus grand numéro connu localement + 1 */
@@ -872,7 +875,7 @@ async function convertToInvoice(){if(!confirm('Créer la facture à partir de ce
   cur.status='converted';cur.factureId=inv.id;await save(true);await store.put(inv);docs.push(JSON.parse(JSON.stringify(inv)));cur=inv;fillEditor();sync.schedule();toast('Facture créée en brouillon : vérifiez puis émettez')}
 function docMenu(){const isF=cur.type==='facture',st=status(cur);const b=[];
   b.push(['📄 PDF',()=>exportPdf()]);
-  if(isF&&cur.num){b.push(['🧾 Créer un avoir (annulation)',()=>createCredit()]);b.push(['📋 Dupliquer en nouvelle facture',()=>duplicate('facture')])}
+  if(isF&&cur.num){if(st!=='paid')b.push(['💶 Paiement reçu',()=>payDialog()]);b.push(['🧾 Créer un avoir (annulation)',()=>createCredit()]);b.push(['📋 Dupliquer en nouvelle facture',()=>duplicate('facture')])}
   if(!isF&&cur.num){if(st!=='converted'&&st!=='accepted')b.push(['✅ Marquer accepté',async()=>{cur.status='accepted';await save(true);fillEditor()}]);if(st!=='converted'&&st!=='refused')b.push(['❌ Marquer refusé',async()=>{cur.status='refused';await save(true);fillEditor()}]);b.push(['📋 Dupliquer en nouveau devis',()=>duplicate('devis')])}
   if(!cur.num)b.push(['🗑 Supprimer le brouillon',async()=>{if(!confirm('Supprimer ce brouillon ?'))return;cur.deletedAt=Date.now();bump(cur);await store.put(cur);docs=docs.filter(x=>x.id!==cur.id);sync.markDeleted(cur.id);sync.schedule();go('list')}]);
   menuBtns.innerHTML=b.map((x,i)=>`<button class="optrow" data-i="${i}">${x[0]}</button>`).join('');menuBtns.querySelectorAll('button').forEach((el,i)=>el.onclick=()=>{dlgMenu.close();b[i][1]()});dlgMenu.showModal()}
@@ -885,6 +888,14 @@ function renderPayments(){document.getElementById('payments').innerHTML=(cur.pay
 function payDialog(){const t=totals(cur);p_date.value=today();p_amt.value=Math.max(0,t.rest).toFixed(2);p_mode.value='Virement';p_note.value='';dlgPay.showModal()}
 async function savePay(){const a=+p_amt.value;if(!(a>0)){p_amt.focus();return}cur.payments.push({id:uid(),date:p_date.value||today(),amount:Math.round(a*100)/100,mode:p_mode.value,note:p_note.value.trim()});dlgPay.close();bump(cur);cur.updatedAt=Date.now();await store.put(cur);const i=docs.findIndex(d=>d.id===cur.id);if(i>=0)docs[i]=JSON.parse(JSON.stringify(cur));sync.schedule();fillEditor();toast('Paiement enregistré')}
 async function removePay(i){if(!confirm('Supprimer ce paiement ?'))return;cur.payments.splice(i,1);bump(cur);cur.updatedAt=Date.now();await store.put(cur);const k=docs.findIndex(d=>d.id===cur.id);if(k>=0)docs[k]=JSON.parse(JSON.stringify(cur));sync.schedule();fillEditor()}
+
+
+/* ---- corbeille de synchronisation : ce que la synchro retire localement est conservé 60 jours ---- */
+const syncBackup={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('sync-backup-'+COMPANY_KEY,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('items',{keyPath:'key'});r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async put(kind,data){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').put({key:kind+':'+data.id,kind,id:data.id,at:Date.now(),data});t.oncomplete=res;t.onerror=res})},
+  async all(kind){const d=await this.open();return new Promise(res=>{const r=d.transaction('items').objectStore('items').getAll();r.onsuccess=()=>res((r.result||[]).filter(x=>!kind||x.kind===kind).sort((a,b)=>b.at-a.at));r.onerror=()=>res([])})},
+  async del(key){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').delete(key);t.oncomplete=res;t.onerror=res})},
+  async purge(){const lim=Date.now()-60*86400000;for(const x of await this.all())if(x.at<lim)await this.del(x.key)}};
 
 /* ========================================================= Clients (table partagée) ========================================================= */
 let editingClient=null,fromEditor=false;
@@ -941,9 +952,14 @@ async function exportPdf(){readEditor();await save(true);const {jsPDF}=window.js
   const cols=[{w:CW-92,h:'Désignation'},{w:22,h:'Qté',r:1},{w:24,h:'PU HT',r:1},{w:16,h:'TVA',r:1},{w:30,h:'Total HT',r:1}];
   const header=()=>{doc.setFillColor(...BLUE);doc.rect(ML,y,CW,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);let x=ML;for(const col of cols){doc.text(col.h,col.r?x+col.w-2:x+2,y+5,{align:col.r?'right':'left'});x+=col.w}y+=7};
   need(20);header();doc.setFont('helvetica','normal');doc.setTextColor(...GREY);
-  for(const l of (d.lines||[]).filter(l=>l.label)){doc.setFontSize(9.5);const ll=txt(l.label).split('\n').flatMap(s=>doc.splitTextToSize(s||' ',cols[0].w-4));const rh=Math.max(6.5,ll.length*4.4+2.5);if(y+rh>H-BOT){doc.addPage();y=TOP;header();doc.setFont('helvetica','normal');doc.setTextColor(...GREY)}
-    doc.text(ll,ML+2,y+4.6);let x=ML+cols[0].w;const vals=[(+l.qty||0).toLocaleString('fr-FR')+' '+l.unit,eur(l.pu),l.tva+' %',eur(lineHT(l))];vals.forEach((v,i)=>{doc.text(txt(v),x+cols[i+1].w-2,y+4.6,{align:'right'});x+=cols[i+1].w});
-    y+=rh;doc.setDrawColor(...LIGHT);doc.setLineWidth(.2);doc.line(ML,y,ML+CW,y)}
+  const LH=4.2;
+  for(const l of (d.lines||[]).filter(l=>l.label)){doc.setFontSize(9.5);const ll=txt(l.label).split('\n').flatMap(s=>doc.splitTextToSize(s||' ',cols[0].w-4));
+    const newPage=()=>{doc.addPage();y=TOP;header();doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GREY)};
+    if(y+LH+3>H-BOT)newPage();
+    // première ligne : désignation + colonnes chiffrées
+    let x=ML+cols[0].w;const vals=[(+l.qty||0).toLocaleString('fr-FR')+' '+l.unit,eur(l.pu),l.tva+' %',eur(lineHT(l))];vals.forEach((v,i)=>{doc.text(txt(v),x+cols[i+1].w-2,y+4.6,{align:'right'});x+=cols[i+1].w});
+    let first=true;for(const s of ll){if(!first&&y+LH>H-BOT){newPage()}doc.text(s,ML+2,y+4.6);y+=LH;first=false}
+    y+=2.2;doc.setDrawColor(...LIGHT);doc.setLineWidth(.2);doc.line(ML,y,ML+CW,y)}
   // totaux
   y+=4;const rates=Object.keys(t.vat).sort((a,b)=>b-a);const tot=[];if(d.discount)tot.push(['Remise '+d.discount+' %','incluse']);tot.push(['Total HT',eur(t.ht)]);rates.forEach(r=>tot.push([`TVA ${r} % (base ${eur(t.vat[r].base)})`,eur(t.vat[r].tva)]));tot.push(['TOTAL TTC',eur(t.ttc),1]);
   if(t.dep)tot.push([isF?'Acompte versé':'Acompte à la commande',eur(t.dep)]);if(isF&&t.paid)tot.push(['Réglé',eur(t.paid)]);if(isF)tot.push(['NET À PAYER',eur(Math.max(0,t.rest)),1]);
@@ -1102,7 +1118,9 @@ function exportCsv(kind){const from=x_from.value||'0000',to=x_to.value||'9999';c
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast(rows.length-1+' ligne(s) exportée(s)')}
 
 /* ========================================================= Réglages ========================================================= */
-function fillSettings(){s_siret.value=fs.siret;s_tva.value=fs.tva;s_forme.value=fs.forme;s_ape.value=fs.ape;s_iban.value=fs.iban;s_bic.value=fs.bic;s_delay.value=fs.delay;s_valid.value=fs.valid;s_tvaDef.value=String(fs.tvaDef);s_terms.value=fs.terms;s_assur.value=fs.assur;
+async function renderSyncTrash(){const el=document.getElementById('syncTrash');if(!el)return;await syncBackup.purge();const items=await syncBackup.all('doc');el.innerHTML=items.length?items.map(x=>`<div class="cl"><div class="n"><b>${x.data.type==='devis'?'Devis':'Facture'} ${esc(x.data.num||'(brouillon)')}</b><span>${esc(clientName(x.data.clientId))} · retiré le ${new Date(x.at).toLocaleDateString('fr-FR')}</span></div><button onclick="restoreBackup('${x.key}')">Restaurer</button></div>`).join(''):'<p class="hint" style="margin:0">Rien à restaurer.</p>'}
+async function restoreBackup(key){const x=(await syncBackup.all('doc')).find(i=>i.key===key);if(!x)return;const d=x.data;d.driveId='';d.driveFolder='';d.rev=Date.now();await store.put(d);if(!docs.some(y=>y.id===d.id))docs.push(d);await syncBackup.del(key);sync.schedule();renderSyncTrash();toast('Document restauré')}
+function fillSettings(){renderSyncTrash();s_siret.value=fs.siret;s_tva.value=fs.tva;s_forme.value=fs.forme;s_ape.value=fs.ape;s_iban.value=fs.iban;s_bic.value=fs.bic;s_delay.value=fs.delay;s_valid.value=fs.valid;s_tvaDef.value=String(fs.tvaDef);s_terms.value=fs.terms;s_assur.value=fs.assur;
   if(!x_from.value){const d=new Date();x_from.value=d.getFullYear()+'-01-01';x_to.value=today()}}
 function saveSettings(){fs={siret:s_siret.value.trim(),tva:s_tva.value.trim(),forme:s_forme.value.trim(),ape:s_ape.value.trim(),iban:s_iban.value.trim(),bic:s_bic.value.trim(),delay:+s_delay.value||30,valid:+s_valid.value||30,tvaDef:+s_tvaDef.value,terms:s_terms.value.trim(),assur:s_assur.value.trim(),updatedAt:Date.now()};
   localStorage.setItem(LS('fact_settings'),JSON.stringify(fs));sync.schedule();toast('Réglages enregistrés');go('list')}
@@ -1151,12 +1169,12 @@ const sync={
     try{await this.ensureFolders();const p=this.pending();const files=await this.list(this.folderId);const byName=Object.fromEntries(files.map(f=>[f.name,f]));
       for(const id of Object.keys(p)){const f=byName['d_'+id+'.json'];if(f)await this.remove(f.id);delete p[id]}
       for(const d of docs.slice()){try{const f=byName['d_'+d.id+'.json'];
-        if(!f){if(d.driveId){await store.del(d.id);docs=docs.filter(x=>x.id!==d.id)}else{d.driveId=await this.uploadJson('d_'+d.id+'.json',d,this.folderId,null,{updatedAt:String(revOf(d))});await store.put(d)}continue}
+        if(!f){if(d.driveId&&d.driveFolder===this.folderId){await syncBackup.put('doc',d);await store.del(d.id);docs=docs.filter(x=>x.id!==d.id)}else{d.driveId=await this.uploadJson('d_'+d.id+'.json',d,this.folderId,null,{updatedAt:String(revOf(d))});d.driveFolder=this.folderId;await store.put(d)}continue}
         const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(revOf(d)>ru){await this.uploadJson('d_'+d.id+'.json',d,null,f.id,{updatedAt:String(revOf(d))});d.driveId=f.id;await store.put(d)}
-        else if(revOf(d)<ru){const nd=await this.download(f.id);nd.driveId=f.id;await store.put(nd);docs[docs.findIndex(x=>x.id===d.id)]=nd;if(cur&&cur.id===nd.id&&!dirty)cur=JSON.parse(JSON.stringify(nd))}
-        else if(!d.driveId){d.driveId=f.id;await store.put(d)}}catch(e){if(!/404/.test(e.message))throw e}}
-      for(const f of files){if(!f.name.startsWith('d_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);if(!docs.some(x=>x.id===id)&&!p[id]){try{const nd=await this.download(f.id);nd.driveId=f.id;await store.put(nd);docs.push(nd)}catch(e){if(!/404/.test(e.message))throw e}}}
+        if(revOf(d)>ru){await this.uploadJson('d_'+d.id+'.json',d,null,f.id,{updatedAt:String(revOf(d))});d.driveId=f.id;d.driveFolder=this.folderId;await store.put(d)}
+        else if(revOf(d)<ru){const nd=await this.download(f.id);nd.driveId=f.id;nd.driveFolder=this.folderId;await store.put(nd);docs[docs.findIndex(x=>x.id===d.id)]=nd;if(cur&&cur.id===nd.id&&!dirty)cur=JSON.parse(JSON.stringify(nd))}
+        else if(!d.driveId||d.driveFolder!==this.folderId){d.driveId=f.id;d.driveFolder=this.folderId;await store.put(d)}}catch(e){if(!/404/.test(e.message))throw e}}
+      for(const f of files){if(!f.name.startsWith('d_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);if(!docs.some(x=>x.id===id)&&!p[id]){try{const nd=await this.download(f.id);nd.driveId=f.id;nd.driveFolder=this.folderId;await store.put(nd);docs.push(nd)}catch(e){if(!/404/.test(e.message))throw e}}}
       // réglages facturation
       const sf=byName['settings.json'];const rs=sf?await this.download(sf.id):null;
       if(rs&&(rs.updatedAt||0)>(fs.updatedAt||0)){fs=Object.assign({},DEF_FS,rs);localStorage.setItem(LS('fact_settings'),JSON.stringify(fs))}else if(!rs||(fs.updatedAt||0)>(rs.updatedAt||0))await this.uploadJson('settings.json',fs,this.folderId,sf&&sf.id);

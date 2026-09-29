@@ -195,7 +195,6 @@ dialog h3{margin-bottom:12px}
     <h1 id="appTitle">Rapports d'intervention</h1>
     <button class="ico" onclick="sync.full(true)" id="btnSync" title="Synchroniser">↻</button>
     <button class="ico" onclick="dlgApps.showModal()" title="Menu">☰</button>
-    <button class="ico" onclick="go('settings')" title="Réglages">⚙</button>
   </header>
   <div class="view">
     <div class="syncbar" id="syncbar"><span id="syncTxt">Synchronisation non configurée</span><button onclick="go('settings')">Réglages</button></div>
@@ -356,10 +355,13 @@ dialog h3{margin-bottom:12px}
     <div class="sect">Données</div>
     <div class="rg">
       <button class="btn sec" onclick="exportData()">Sauvegarder (JSON)</button>
-      <label class="btn sec" style="cursor:pointer">Restaurer<input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])"></label>
+      <label class="btn sec" style="cursor:pointer">Restaurer<input type="file" accept=".json" class="hidden" multiple onchange="for(const f of this.files)importData(f)"></label>
     </div>
     <p class="hint" style="margin-top:14px;text-align:center">Version <span class="verTxt"></span> · mise à jour le <span class="buildTxt"></span></p>
-    <p class="hint" id="storageNote" style="margin-top:10px">Les rapports sont stockés uniquement sur ce téléphone. Pensez à faire une sauvegarde de temps en temps.</p>
+    <div class="sect">Corbeille de synchronisation</div>
+    <div id="syncTrash"></div>
+    <p class="hint" style="font-size:13px;color:var(--ink3)">Rapports retirés de ce téléphone par la synchronisation (conservés 60 jours). « Restaurer » les renvoie sur le Drive.</p>
+    <p class="hint" id="storageNote" style="margin-top:10px">La sauvegarde JSON couvre les rapports, notes, factures, clients et réglages de cette société sur cet appareil (hors fichiers en attente d'envoi). Elle se restaure sur n'importe quel appareil.</p>
   </div>
 </section>
 
@@ -396,6 +398,7 @@ dialog h3{margin-bottom:12px}
   <button class="optrow" onclick="location.href='./notes/'">📝 Notes</button>
   <button class="optrow" onclick="location.href='./factures/'">🧾 Facturation</button>
   <button class="optrow" onclick="dlgApps.close();go('clients')">👤 Clients</button>
+  <button class="optrow" onclick="dlgApps.close();go('settings')">⚙ Réglages et sauvegarde</button>
   <div class="rg"><button class="btn sec" onclick="dlgApps.close()">Fermer</button></div>
 </dialog>
 <div class="toast" id="toast"></div>
@@ -805,7 +808,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
    Société : déterminée par le dossier de l'URL (/ventura/, /kidebouchetou/).
    Tout le stockage local et le dossier Drive sont préfixés par cette clé.
    ========================================================= */
-const APP_VERSION='1.54';const BUILD_DATE='28/09/2026 à 14:41';
+const APP_VERSION='1.62';const BUILD_DATE='29/09/2026 à 10:50';
 const COMPANIES={
   ventura:{label:'Ventura',color:'#1e3a5f',drive:"Rapports d'intervention",
     defaults:{name:'Établissement Ventura - Groupe EVAD',addr:'20 allée Paul Léon Fargues 95200 Sarcelles',tel:'0603740704',mail:'expressdepannage@yahoo.fr',rcs:'923273635 RCS PONTOISE'}},
@@ -1131,6 +1134,14 @@ function renderRFiles(){const el=document.getElementById('rfiles');const fs=cur.
   el.innerHTML=fs.length?fs.map((f,i)=>`<div class="file"><div class="ic">${f.kind==='audio'?'🎙':/pdf/i.test(f.mime)?'📄':'📎'}</div><div class="n"><b>${esc(f.name)}</b><span>${f.kind==='audio'?'Audio':'Document'} · ${fmtSizeR(f.size||0)}${f.dur?' · '+fmtDur(f.dur):''}</span><input placeholder="Légende…" value="${esc(f.cap||'')}" oninput="cur.files[${i}].cap=this.value;mark()"></div>
     <button class="pl" onclick="window.open('${f.link}','_blank')" title="Ouvrir">▶</button><button class="x" onclick="cur.files.splice(${i},1);renderRFiles();mark()">×</button></div>`).join(''):'<p class="hint" style="margin:0 0 8px">Aucune pièce jointe. Utilisez « Reprendre » sur une note liée.</p>'}
 
+
+/* ---- corbeille de synchronisation : ce que la synchro retire localement est conservé 60 jours ---- */
+const syncBackup={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((res,rej)=>{const r=indexedDB.open('sync-backup-'+COMPANY_KEY,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('items',{keyPath:'key'});r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=e=>rej(e.target.error)})},
+  async put(kind,data){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').put({key:kind+':'+data.id,kind,id:data.id,at:Date.now(),data});t.oncomplete=res;t.onerror=res})},
+  async all(kind){const d=await this.open();return new Promise(res=>{const r=d.transaction('items').objectStore('items').getAll();r.onsuccess=()=>res((r.result||[]).filter(x=>!kind||x.kind===kind).sort((a,b)=>b.at-a.at));r.onerror=()=>res([])})},
+  async del(key){const d=await this.open();return new Promise(res=>{const t=d.transaction('items','readwrite');t.objectStore('items').delete(key);t.oncomplete=res;t.onerror=res})},
+  async purge(){const lim=Date.now()-60*86400000;for(const x of await this.all())if(x.at<lim)await this.del(x.key)}};
+
 /* ================= rendu HTML du corps ================= */
 function renderBody(text){let h='';
   for(const b of parse(text)){
@@ -1302,7 +1313,10 @@ async function saveClient(){
 async function deleteClient(id){if(!confirm('Supprimer ce client ? Les rapports existants sont conservés.'))return;await store.delClient(id);clients=clients.filter(c=>c.id!==id);sync.markDeleted('c',id);sync.schedule();renderClients()}
 
 /* ================= réglages ================= */
-function fillSettings(){s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=sync.clientId();s_gsec.value=sync.clientSecret();s_gcid.readOnly=builtin(GOOGLE_CLIENT_ID);s_gsec.readOnly=builtin(GOOGLE_CLIENT_SECRET);renderLogo();sync.renderSettings()}
+async function renderSyncTrash(){const el=document.getElementById('syncTrash');if(!el)return;await syncBackup.purge();const items=await syncBackup.all('report');
+  el.innerHTML=items.length?items.map(x=>`<div class="client"><div class="n"><b>${esc(x.data.addr||'(sans adresse)')}${x.data.num?' · n° '+esc(x.data.num):''}</b><span>${esc(fmtDate(x.data.date))} · retiré le ${new Date(x.at).toLocaleDateString('fr-FR')}</span></div><button onclick="restoreBackup('${x.key}')">Restaurer</button></div>`).join(''):'<p class="hint" style="margin:0">Rien à restaurer.</p>'}
+async function restoreBackup(key){const items=await syncBackup.all('report');const x=items.find(i=>i.key===key);if(!x)return;const r=x.data;r.driveId='';r.driveFolder='';r.updatedAt=Date.now();r.rev=r.updatedAt;await store.putReport(r);if(!reports.some(y=>y.id===r.id))reports.push(r);await syncBackup.del(key);sync.schedule();renderSyncTrash();toast('Rapport restauré, il sera renvoyé sur le Drive')}
+function fillSettings(){renderSyncTrash();s_name.value=settings.name;s_addr.value=settings.addr;s_tel.value=settings.tel;s_mail.value=settings.mail;s_rcs.value=settings.rcs;s_title.value=settings.title;s_footer.value=settings.footer;s_px.value=settings.px;s_q.value=settings.q;s_gcid.value=sync.clientId();s_gsec.value=sync.clientSecret();s_gcid.readOnly=builtin(GOOGLE_CLIENT_ID);s_gsec.readOnly=builtin(GOOGLE_CLIENT_SECRET);renderLogo();sync.renderSettings()}
 function renderLogo(){const im=document.getElementById('s_logoImg');im.classList.toggle('hidden',!settings.logo);document.getElementById('s_logoDel').classList.toggle('hidden',!settings.logo);if(settings.logo)im.src=settings.logo}
 async function setLogo(file){
   if(!file){settings.logo='';settings.logoW=settings.logoH=0}
@@ -1316,17 +1330,41 @@ function saveSettings(){settings={name:s_name.value.trim(),addr:s_addr.value.tri
   store.saveSettings(settings);sync.schedule();toast('Réglages enregistrés');go('list')}
 
 /* ================= sauvegarde / restauration ================= */
-function exportData(){
-  const blob=new Blob([JSON.stringify({v:1,settings,clients,reports})],{type:'application/json'});
-  shareOrDownload(blob,`sauvegarde-rapports-${new Date().toISOString().slice(0,10)}.json`,'application/json');
+/* Sauvegarde complète : toutes les bases IndexedDB de la société (rapports, notes, factures, et modules futurs)
+   + les réglages locaux. Les fichiers en attente d'envoi (vidéos, pièces jointes) ne sont pas inclus. */
+const SKIP_DB=/-blobs-|videos-|share-inbox|sync-backup/;
+async function dumpDb(name){return new Promise((res,rej)=>{const q=indexedDB.open(name);q.onsuccess=async e=>{const d=e.target.result;const out={version:d.version,stores:{}};
+  try{for(const st of [...d.objectStoreNames]){const os=d.transaction(st).objectStore(st);const rows=await new Promise((rs,rj)=>{const g=os.getAll();g.onsuccess=()=>rs(g.result||[]);g.onerror=()=>rj(g.error)});
+    if(rows.some(x=>x instanceof Blob||(x&&typeof x==='object'&&Object.values(x).some(v=>v instanceof Blob))))continue;out.stores[st]={keyPath:os.keyPath,autoIncrement:os.autoIncrement,rows}}}catch(err){rej(err);return}finally{d.close()}res(out)};q.onerror=e=>rej(e.target.error);q.onupgradeneeded=e=>{e.target.transaction.abort();rej(new Error('inexistante'))}})}
+async function exportData(){
+  const names=(indexedDB.databases?await indexedDB.databases():[]).map(d=>d.name).filter(n=>n&&n.endsWith('-'+COMPANY_KEY)&&!SKIP_DB.test(n));
+  if(!names.length){toast('Aucune base trouvée');return}
+  const dbs={};for(const n of names){try{dbs[n]=await dumpDb(n)}catch(e){console.warn(n,e)}}
+  const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(COMPANY_KEY+':'))ls[k]=localStorage.getItem(k)}
+  const counts=Object.entries(dbs).map(([n,d])=>n.replace('-'+COMPANY_KEY,'')+' : '+Object.values(d.stores).reduce((s,x)=>s+x.rows.length,0)).join(', ');
+  const blob=new Blob([JSON.stringify({v:2,company:COMPANY_KEY,at:Date.now(),dbs,ls,settings,clients,reports})],{type:'application/json'});
+  toast('Sauvegarde : '+counts);shareOrDownload(blob,`sauvegarde-${COMPANY_KEY}-${new Date().toISOString().slice(0,10)}.json`,'application/json');
 }
+function restoreDb(name,dump){return new Promise((res,rej)=>{const q=indexedDB.open(name,Math.max(dump.version||1,1));
+  q.onupgradeneeded=e=>{const d=e.target.result;for(const [st,s] of Object.entries(dump.stores))if(!d.objectStoreNames.contains(st))d.createObjectStore(st,s.keyPath?{keyPath:s.keyPath,autoIncrement:!!s.autoIncrement}:{autoIncrement:!!s.autoIncrement})};
+  q.onsuccess=e=>{const d=e.target.result;const stores=Object.keys(dump.stores).filter(st=>d.objectStoreNames.contains(st));if(!stores.length){d.close();res(0);return}
+    const t=d.transaction(stores,'readwrite');let n=0;for(const st of stores)for(const row of dump.stores[st].rows){t.objectStore(st).put(row);n++}
+    t.oncomplete=()=>{d.close();res(n)};t.onerror=ev=>{d.close();rej(ev.target.error)}};q.onerror=e=>rej(e.target.error)})}
 async function importData(file){
-  if(!file)return;try{const d=JSON.parse(await file.text());
+  if(!file)return;try{let d=JSON.parse(await file.text());
+    if(d&&d.v===2&&d.dbs){const total=Object.values(d.dbs).reduce((s,db)=>s+Object.values(db.stores).reduce((a,x)=>a+x.rows.length,0),0);
+      if(!confirm(`Restaurer la sauvegarde complète (${total} éléments : rapports, notes, factures…) ? Les éléments existants de même identifiant sont remplacés.`))return;
+      for(const [name,db] of Object.entries(d.dbs)){const target=name.replace(/-[a-z]+$/,'-'+COMPANY_KEY);await restoreDb(target,db)}
+      for(const [k,v] of Object.entries(d.ls||{})){const key=k.replace(/^[a-z]+:/,COMPANY_KEY+':');if(!/gClient/.test(v||''))localStorage.setItem(key,v)}
+      reports=await store.allReports();clients=await store.allClients();settings=Object.assign({},DEF_SETTINGS,await store.loadSettings());if(builtin(GOOGLE_CLIENT_ID))settings.gClientId='';if(builtin(GOOGLE_CLIENT_SECRET))settings.gClientSecret='';
+      for(const r of reports){r.driveId='';r.driveFolder='';r.rev=Date.now();await store.putReport(r)}
+      toast('Sauvegarde restaurée');sync.schedule();go('list');return}
+    if(Array.isArray(d))d={reports:d.filter(x=>x&&x.id&&('photos' in x))};else if(d&&d.id&&!d.reports&&!d.clients)d={reports:[d]};
     if(!confirm(`Restaurer ${d.reports?.length||0} rapports et ${d.clients?.length||0} clients ? Les éléments existants ayant le même identifiant seront remplacés.`))return;
-    for(const c of d.clients||[])await store.putClient(c);for(const r of d.reports||[])await store.putReport(r);
-    if(d.settings){settings=Object.assign({},DEF_SETTINGS,d.settings);await store.saveSettings(settings)}
+    for(const c of d.clients||[])await store.putClient(c);for(const r of d.reports||[]){r.driveId='';r.driveFolder='';r.rev=Date.now();await store.putReport(r)}
+    if(d.settings){settings=Object.assign({},DEF_SETTINGS,d.settings);if(builtin(GOOGLE_CLIENT_ID))settings.gClientId='';if(builtin(GOOGLE_CLIENT_SECRET))settings.gClientSecret='';await store.saveSettings(settings)}
     clients=await store.allClients();reports=await store.allReports();toast('Données restaurées');sync.schedule();go('list')}
-  catch(e){toast('Fichier de sauvegarde invalide')}
+  catch(e){console.warn(e);toast('Fichier de sauvegarde invalide')}
 }
 
 /* ================= démarrage ================= */
@@ -1488,16 +1526,16 @@ const sync={
       // rapports locaux
       for(const r of reports.slice()){try{
         const f=byName['r_'+r.id+'.json'];
-        if(!f){ if(r.driveId){await store.delReport(r.id);reports=reports.filter(x=>x.id!==r.id);changed=true} // supprimé par un collègue
-                else{r.driveId=await this.uploadJson('r_'+r.id+'.json',r,this.folderId,null,{updatedAt:String(revOf(r))});await store.putReport(r)} continue }
+        if(!f){ if(r.driveId&&r.driveFolder===this.folderId){await syncBackup.put('report',r);await store.delReport(r.id);reports=reports.filter(x=>x.id!==r.id);changed=true} // supprimé par un collègue (même dossier Drive)
+                else{r.driveId=await this.uploadJson('r_'+r.id+'.json',r,this.folderId,null,{updatedAt:String(revOf(r))});r.driveFolder=this.folderId;await store.putReport(r)} continue }
         const ru=+(f.appProperties&&f.appProperties.updatedAt)||0;
-        if(revOf(r)>ru){await this.uploadJson('r_'+r.id+'.json',r,null,f.id,{updatedAt:String(revOf(r))});r.driveId=f.id;await store.putReport(r)}
-        else if(revOf(r)<ru){const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports[reports.findIndex(x=>x.id===r.id)]=nr;if(cur&&cur.id===nr.id&&!dirty){cur=JSON.parse(JSON.stringify(nr))}changed=true}
-        else if(!r.driveId){r.driveId=f.id;await store.putReport(r)}
+        if(revOf(r)>ru){await this.uploadJson('r_'+r.id+'.json',r,null,f.id,{updatedAt:String(revOf(r))});r.driveId=f.id;r.driveFolder=this.folderId;await store.putReport(r)}
+        else if(revOf(r)<ru){const nr=await this.download(f.id);nr.driveId=f.id;nr.driveFolder=this.folderId;await store.putReport(nr);reports[reports.findIndex(x=>x.id===r.id)]=nr;if(cur&&cur.id===nr.id&&!dirty){cur=JSON.parse(JSON.stringify(nr))}changed=true}
+        else if(!r.driveId||r.driveFolder!==this.folderId){r.driveId=f.id;r.driveFolder=this.folderId;await store.putReport(r)}
       }catch(e){if(!/404/.test(e.message))throw e}}
       // rapports distants inconnus
       for(const f of files){if(!f.name.startsWith('r_')||!f.name.endsWith('.json'))continue;const id=f.name.slice(2,-5);
-        if(!reports.some(r=>r.id===id)){if(p.r[id])continue;try{const nr=await this.download(f.id);nr.driveId=f.id;await store.putReport(nr);reports.push(nr);changed=true}catch(e){if(!/404/.test(e.message))throw e}}}
+        if(!reports.some(r=>r.id===id)){if(p.r[id])continue;try{const nr=await this.download(f.id);nr.driveId=f.id;nr.driveFolder=this.folderId;await store.putReport(nr);reports.push(nr);changed=true}catch(e){if(!/404/.test(e.message))throw e}}}
       // clients : fusion par id, tombstones pour les suppressions
       const cf=byName['clients.json'];let remote=cf?await this.download(cf.id):{clients:[],deleted:{}};remote.deleted=remote.deleted||{};
       Object.assign(remote.deleted,p.c);

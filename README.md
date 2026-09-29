@@ -101,3 +101,15 @@ Réserve : facturation électronique obligatoire (émission TPE/PME dès sept. 2
 à traiter le moment venu (export vers une plateforme agréée).
 
 Envoi d'une facture ou d'un devis : si des rapports d'intervention sont liés, leur PDF est joint (deux pièces ou plus dans la feuille de partage). Menu ☰ commun : Rapports, Notes, Facturation, Clients.
+
+## Sécurité de la synchronisation (1.55)
+Un document n'est retiré d'un appareil par la synchro que s'il manque dans le même dossier Drive que celui où
+il avait été envoyé ; un document synchronisé auparavant avec un autre compte ou dossier est renvoyé, jamais
+supprimé. Tout retrait décidé par la synchro est conservé 60 jours dans la « Corbeille de synchronisation »
+(Réglages des Rapports, Carnets des Notes, Réglages de Facturation) avec un bouton Restaurer.
+Réglages ▸ Restaurer (Rapports) accepte aussi directement des fichiers r_*.json téléchargés depuis un Drive.
+
+Sauvegarde (Rapports ▸ menu ☰ ▸ Réglages et sauvegarde) : format v2, toutes les bases IndexedDB de la société
+(rapports, clients, notes, carnets, factures… et tout module futur nommé <module>-<société>) + réglages locaux ;
+hors fichiers en attente d'envoi. Restaurer accepte les sauvegardes v2, l'ancien format et les r_*.json bruts.
+Les boutons Réglages sont dans le menu ☰ (Rapports, Facturation) ; Notes : « Carnets, import et réglages ».
