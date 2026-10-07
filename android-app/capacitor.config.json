@@ -1,0 +1,8 @@
+{
+  "appId": "fr.ventura.rapports",
+  "appName": "Rapports d'intervention",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false, "backgroundColor": "#1e3a5f" },
+  "plugins": { "CapacitorHttp": { "enabled": false } }
+}
