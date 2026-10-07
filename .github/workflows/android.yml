@@ -1,0 +1,138 @@
+name: Android APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ventura/**'
+      - 'kidebouchetou/**'
+      - 'index.html'
+      - 'android-app/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lire la version de l'application
+        id: ver
+        run: |
+          V=$(grep -o "APP_VERSION='[^']*'" ventura/index.html | head -1 | sed "s/APP_VERSION='\(.*\)'/\1/")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Version $V"
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '17' }
+      - uses: android-actions/setup-android@v3
+
+      # ---------- Clé de signature ----------
+      # Premier passage : aucun secret → une clé est générée, affichée (base64) dans le résumé du job,
+      # et le workflow s'arrête pour que vous la copiiez dans les secrets du dépôt.
+      - name: Clé de signature
+        id: key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            PASS=$(openssl rand -hex 16)
+            keytool -genkeypair -v -keystore release.keystore -alias rapports -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PASS" -keypass "$PASS" -dname "CN=Rapports d'intervention, O=Etablissement Ventura, L=Sarcelles, C=FR"
+            SHA1=$(keytool -list -v -keystore release.keystore -alias rapports -storepass "$PASS" | grep 'SHA1:' | sed 's/.*SHA1: //')
+            {
+              echo "## Première exécution : clé de signature créée"
+              echo
+              echo "Ajoutez ces deux **secrets** au dépôt (Settings ▸ Secrets and variables ▸ Actions ▸ New repository secret) :"
+              echo
+              echo "**ANDROID_KEYSTORE_PASS**"
+              echo '```'; echo "$PASS"; echo '```'
+              echo "**ANDROID_KEYSTORE_B64**"
+              echo '```'; base64 -w0 release.keystore; echo; echo '```'
+              echo
+              echo "Puis créez dans la console Google un ID client OAuth de type **Android** :"
+              echo "- Nom du package : \`fr.ventura.rapports\`"
+              echo "- Empreinte SHA-1 : \`$SHA1\`"
+              echo
+              echo "et ajoutez la **variable** (onglet Variables) **ANDROID_CLIENT_ID** avec l'ID obtenu (xxxx.apps.googleusercontent.com)."
+              echo
+              echo "Relancez ensuite le workflow (Actions ▸ Android APK ▸ Run workflow)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Clé générée : voir le résumé du job, puis relancer."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > release.keystore
+          SHA1=$(keytool -list -v -keystore release.keystore -alias rapports -storepass "$KEYSTORE_PASS" | grep 'SHA1:' | sed 's/.*SHA1: //')
+          echo "sha1=$SHA1" >> "$GITHUB_OUTPUT"
+          echo "Empreinte SHA-1 de la clé : $SHA1" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Préparer le contenu web
+        env:
+          ANDROID_CLIENT_ID: ${{ vars.ANDROID_CLIENT_ID }}
+        run: |
+          cd android-app
+          rm -rf www && mkdir www
+          cp -r ../index.html ../ventura ../kidebouchetou ../confidentialite.html ../conditions.html www/ 2>/dev/null || true
+          # pas de service worker ni de manifeste dans l'enveloppe
+          find www -name sw.js -delete
+          if [ -n "$ANDROID_CLIENT_ID" ]; then
+            find www -name index.html -exec sed -i "s/__GOOGLE_ANDROID_CLIENT_ID__/$ANDROID_CLIENT_ID/g" {} +
+          else
+            echo "::warning::Variable ANDROID_CLIENT_ID absente : la connexion Google ne fonctionnera pas dans l'APK."
+          fi
+          npm install --no-audit --no-fund
+          npx cap add android
+          npx cap sync android
+
+      - name: Permissions et lien de retour OAuth
+        env:
+          ANDROID_CLIENT_ID: ${{ vars.ANDROID_CLIENT_ID }}
+        run: |
+          cd android-app/android/app/src/main
+          # permissions : caméra, micro, réseau
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' AndroidManifest.xml
+          if [ -n "$ANDROID_CLIENT_ID" ]; then
+            SCHEME="com.googleusercontent.apps.${ANDROID_CLIENT_ID%%.apps.googleusercontent.com}"
+            # intent-filter du retour Google, ajouté à l'activité principale
+            python3 ../../../../patch_manifest.py "$SCHEME"
+          fi
+          grep -n "intent-filter\|uses-permission" AndroidManifest.xml | head -20
+
+      - name: Nom et version de l'app
+        run: |
+          cd android-app/android/app
+          V="${{ steps.ver.outputs.version }}"
+          CODE=$(echo "$V" | awk -F. '{printf "%d%03d", $1, $2}')
+          sed -i "s/versionCode [0-9]*/versionCode $CODE/; s/versionName \"[^\"]*\"/versionName \"$V\"/" build.gradle
+          sed -i 's#<string name="app_name">.*</string>#<string name="app_name">Rapports d\x27intervention</string>#; s#<string name="title_activity_main">.*</string>#<string name="title_activity_main">Rapports d\x27intervention</string>#' src/main/res/values/strings.xml
+          grep -n "versionCode\|versionName" build.gradle
+
+      - name: Compiler l'APK signé
+        env:
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: |
+          cd android-app/android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon -q
+          APK=$(ls app/build/outputs/apk/release/*-unsigned.apk | head -1)
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          "$BT/zipalign" -f -p 4 "$APK" aligned.apk
+          "$BT/apksigner" sign --ks ../../release.keystore --ks-key-alias rapports --ks-pass "pass:$KEYSTORE_PASS" --key-pass "pass:$KEYSTORE_PASS" --out "../../rapports-intervention-${{ steps.ver.outputs.version }}.apk" aligned.apk
+          ls -la ../../*.apk
+
+      - name: Publier la Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Version ${{ steps.ver.outputs.version }}
+          body: |
+            APK Android signé. Installation : télécharger le fichier .apk sur le téléphone, l'ouvrir, autoriser l'installation depuis cette source si demandé.
+            Empreinte SHA-1 de signature : ${{ steps.key.outputs.sha1 }}
+          files: rapports-intervention-${{ steps.ver.outputs.version }}.apk
