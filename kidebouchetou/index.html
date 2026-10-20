@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1e3a5f"><title>Rapports d'intervention – nouvelle adresse</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font:17px -apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7f9;color:#1b2733;padding:24px;text-align:center}a{color:#1e3a5f;font-weight:600}</style>
+<script>
+/* L'application a changé d'adresse : /RapportIntervention/… → /TEST_123/… (chemin, paramètres et ancre conservés) */
+(function(){
+  var OLD=/^\/RapportIntervention\//i, NEW='/TEST_123/';
+  var target=location.pathname.replace(OLD,NEW)+location.search+location.hash;
+  if(target.indexOf(NEW)!==0)target=NEW;
+  try{if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){if(OLD.test(new URL(r.scope).pathname))r.unregister()})})}catch(e){}
+  location.replace(target);
+})();
+</script></head>
+<body><p>L'application a changé d'adresse.<br><br><a href="/TEST_123/">Ouvrir la nouvelle adresse</a></p></body></html>
